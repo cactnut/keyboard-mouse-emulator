@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CH9329 WebSerial Controller</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f7f7f7;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        .section h2 {
+            color: #555;
+            margin-top: 0;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+        .status {
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+        .status.connected {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .status.disconnected {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .mouse-pad {
+            width: 300px;
+            height: 200px;
+            background: #333;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            margin: 20px auto;
+            position: relative;
+            cursor: crosshair;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+            user-select: none;
+        }
+        .mouse-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .mouse-button {
+            width: 100px;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .coordinates {
+            font-family: 'Courier New', monospace;
+            color: #666;
+            margin: 10px 0;
+        }
+        .media-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .log {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #1e1e1e;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .log-entry {
+            margin: 2px 0;
+            opacity: 0;
+            animation: fadeIn 0.3s ease-in forwards;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+        .warning h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        input[type="range"] {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 CH9329 WebSerial Controller</h1>
+        
+        <div class="warning">
+            <h3>⚠️ 対応ブラウザ</h3>
+            <p>このツールはWebSerial APIを使用します。以下のデスクトップブラウザで動作します：</p>
+            <ul>
+                <li>✅ Chrome 89以降</li>
+                <li>✅ Edge 89以降</li>
+                <li>✅ Opera 76以降</li>
+                <li>❌ Firefox（未対応）</li>
+                <li>❌ Safari（未対応）</li>
+                <li>❌ モバイルブラウザ全般（未対応）</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>🔌 接続設定</h2>
+            <div class="status disconnected" id="status">未接続</div>
+            <div>
+                <label>ボーレート: 
+                    <select id="baudRate">
+                        <option value="9600" selected>9600</option>
+                        <option value="19200">19200</option>
+                        <option value="38400">38400</option>
+                        <option value="57600">57600</option>
+                        <option value="115200">115200</option>
+                    </select>
+                </label>
+                <label style="margin-left: 20px">画面サイズ: 
+                    <input type="number" id="screenWidth" value="1920" min="1"> x 
+                    <input type="number" id="screenHeight" value="1080" min="1">
+                </label>
+            </div>
+            <button id="connectBtn">接続</button>
+            <button id="disconnectBtn" disabled>切断</button>
+        </div>
+
+        <div class="section">
+            <h2>⌨️ キーボード入力</h2>
+            <textarea id="textInput" placeholder="送信するテキストを入力..."></textarea>
+            <button id="sendTextBtn" disabled>テキスト送信</button>
+            <button id="clearTextBtn">クリア</button>
+            
+            <div class="button-group">
+                <button class="key-btn" data-key="ENTER" disabled>Enter</button>
+                <button class="key-btn" data-key="TAB" disabled>Tab</button>
+                <button class="key-btn" data-key="ESC" disabled>ESC</button>
+                <button class="key-btn" data-key="BACKSPACE" disabled>Backspace</button>
+                <button class="key-btn" data-key="SPACE" disabled>Space</button>
+            </div>
+            
+            <div class="button-group">
+                <button class="mod-btn" data-key="CTRL" disabled>Ctrl</button>
+                <button class="mod-btn" data-key="SHIFT" disabled>Shift</button>
+                <button class="mod-btn" data-key="ALT" disabled>Alt</button>
+                <button class="mod-btn" data-key="WINDOWS" disabled>Win/Cmd</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🖱️ マウス操作</h2>
+            <div class="mouse-pad" id="mousePad">クリックして座標を送信</div>
+            <div class="coordinates" id="coordinates">座標: (-, -)</div>
+            
+            <div class="mouse-buttons">
+                <button class="mouse-button" id="leftClickBtn" disabled>左クリック</button>
+                <button class="mouse-button" id="rightClickBtn" disabled>右クリック</button>
+                <button class="mouse-button" id="middleClickBtn" disabled>中クリック</button>
+            </div>
+            
+            <div class="slider-container">
+                <label>相対移動 X: </label>
+                <input type="range" id="relX" min="-127" max="127" value="0">
+                <span id="relXValue">0</span>
+                <button id="moveRelBtn" disabled>相対移動</button>
+            </div>
+            <div class="slider-container">
+                <label>相対移動 Y: </label>
+                <input type="range" id="relY" min="-127" max="127" value="0">
+                <span id="relYValue">0</span>
+            </div>
+            
+            <div class="slider-container">
+                <label>スクロール: </label>
+                <input type="range" id="scrollAmount" min="-10" max="10" value="0">
+                <span id="scrollValue">0</span>
+                <button id="scrollBtn" disabled>スクロール</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎵 メディアキー</h2>
+            <div class="media-controls">
+                <button class="media-btn" data-key="PLAYPAUSE" disabled>⏯️ 再生/停止</button>
+                <button class="media-btn" data-key="MUTE" disabled>🔇 ミュート</button>
+                <button class="media-btn" data-key="VOLUMEP" disabled>🔊 音量+</button>
+                <button class="media-btn" data-key="VOLUMEM" disabled>🔉 音量-</button>
+                <button class="media-btn" data-key="NEXTTRACK" disabled>⏭️ 次へ</button>
+                <button class="media-btn" data-key="PREVTRACK" disabled>⏮️ 前へ</button>
+                <button class="media-btn" data-key="CDSTOP" disabled>⏹️ 停止</button>
+                <button class="media-btn" data-key="EJECT" disabled>⏏️ 取り出し</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 ログ</h2>
+            <button id="clearLogBtn">ログクリア</button>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <script src="ch9329_webserial.js"></script>
+</body>
+</html>
