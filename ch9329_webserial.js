@@ -9,6 +9,7 @@ class CH9329Controller {
         this.isConnected = false;
         this.screenWidth = 1920;
         this.screenHeight = 1080;
+        this.keyboardLayout = 'auto';  // 'auto', 'us', 'jis'
         
         // キーコード定義
         this.SPECIAL_KEYS = {
@@ -50,8 +51,8 @@ class CH9329Controller {
     initKeyTable() {
         this.KEY_TABLE = {};
         
-        // 特殊文字
-        const specialChars = {
+        // USキーボード用特殊文字（デフォルト）
+        const usSpecialChars = {
             '!': [2, 0x1E], '"': [2, 0x1F], '#': [2, 0x20], '$': [2, 0x21], 
             '%': [2, 0x22], '&': [2, 0x23], "'": [2, 0x24], '=': [2, 0x2D],
             '-': [0, 0x2D], '~': [2, 0x2E], '^': [0, 0x2E], '|': [2, 0x89],
@@ -61,6 +62,34 @@ class CH9329Controller {
             ',': [0, 0x36], '>': [2, 0x37], '.': [0, 0x37], '?': [2, 0x38],
             '/': [0, 0x38], '_': [2, 0x87], '(': [2, 0x26], ')': [2, 0x27]
         };
+        
+        // JISキーボード用特殊文字
+        const jisSpecialChars = {
+            '!': [2, 0x1E], '"': [2, 0x1F], '#': [2, 0x20], '$': [2, 0x21], 
+            '%': [2, 0x22], '&': [2, 0x23], "'": [2, 0x24], '=': [2, 0x2D],
+            '-': [0, 0x2D], '~': [2, 0x2E], '^': [0, 0x2E], '|': [2, 0x89],
+            '\\': [0, 0x89], '`': [2, 0x2F], '@': [0, 0x2F], '{': [2, 0x30],
+            '[': [0, 0x30], '}': [2, 0x31], ']': [0, 0x31], '*': [2, 0x34],
+            ':': [0, 0x34], '+': [2, 0x33], ';': [0, 0x33], '<': [2, 0x36],
+            ',': [0, 0x36], '>': [2, 0x37], '.': [0, 0x37], '?': [2, 0x38],
+            '/': [0, 0x38], '_': [2, 0x87], 
+            '(': [2, 0x25],  // JIS: Shift+8
+            ')': [2, 0x26]   // JIS: Shift+9
+        };
+        
+        // キーボードレイアウトに基づいて選択
+        let specialChars;
+        if (this.keyboardLayout === 'jis-mac' || this.keyboardLayout === 'jis-win') {
+            specialChars = jisSpecialChars;
+            this.log(`キーボードレイアウト: ${this.keyboardLayout.toUpperCase()}`, 'info');
+        } else if (this.keyboardLayout === 'auto') {
+            // 自動検出は後で実装
+            specialChars = usSpecialChars;
+            this.log('キーボードレイアウト: AUTO (USを仮設定)', 'info');
+        } else {
+            specialChars = usSpecialChars;
+            this.log('キーボードレイアウト: US', 'info');
+        }
         
         Object.assign(this.KEY_TABLE, specialChars);
         
@@ -299,11 +328,126 @@ class CH9329Controller {
             }));
         }
     }
+    
+    detectJISLayout() {
+        // ブラウザの言語設定やOS情報からJISレイアウトを推測
+        const lang = navigator.language || navigator.userLanguage;
+        const platform = navigator.platform;
+        
+        // 日本語環境かつMacの場合はJISレイアウトの可能性が高い
+        if (lang.startsWith('ja') && platform.includes('Mac')) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    setKeyboardLayout(layout) {
+        this.keyboardLayout = layout;
+        this.initKeyTable();  // キーテーブルを再初期化
+    }
 }
+
+// キーボードレイアウト定義
+const KEYBOARD_LAYOUTS = {
+    'us': {
+        name: 'US (ANSI)',
+        numberRow: [
+            { code: 'Backquote', normal: '`', shift: '~' },
+            { code: 'Digit1', normal: '1', shift: '!' },
+            { code: 'Digit2', normal: '2', shift: '@' },
+            { code: 'Digit3', normal: '3', shift: '#' },
+            { code: 'Digit4', normal: '4', shift: '$' },
+            { code: 'Digit5', normal: '5', shift: '%' },
+            { code: 'Digit6', normal: '6', shift: '^' },
+            { code: 'Digit7', normal: '7', shift: '&' },
+            { code: 'Digit8', normal: '8', shift: '*' },
+            { code: 'Digit9', normal: '9', shift: '(' },
+            { code: 'Digit0', normal: '0', shift: ')' },
+            { code: 'Minus', normal: '-', shift: '_' },
+            { code: 'Equal', normal: '=', shift: '+' },
+            { code: 'Backspace', label: '←BS', class: 'backspace' }
+        ],
+        symbolKeys: {
+            'BracketLeft': { normal: '[', shift: '{' },
+            'BracketRight': { normal: ']', shift: '}' },
+            'Backslash': { normal: '\\', shift: '|' },
+            'Semicolon': { normal: ';', shift: ':' },
+            'Quote': { normal: "'", shift: '"' },
+            'Comma': { normal: ',', shift: '<' },
+            'Period': { normal: '.', shift: '>' },
+            'Slash': { normal: '/', shift: '?' }
+        }
+    },
+    'jis-mac': {
+        name: 'JIS (Mac)',
+        numberRow: [
+            { code: 'Backquote', normal: '`', shift: '~' },
+            { code: 'Digit1', normal: '1', shift: '!' },
+            { code: 'Digit2', normal: '2', shift: '"' },
+            { code: 'Digit3', normal: '3', shift: '#' },
+            { code: 'Digit4', normal: '4', shift: '$' },
+            { code: 'Digit5', normal: '5', shift: '%' },
+            { code: 'Digit6', normal: '6', shift: '&' },
+            { code: 'Digit7', normal: '7', shift: "'" },
+            { code: 'Digit8', normal: '8', shift: '(' },
+            { code: 'Digit9', normal: '9', shift: ')' },
+            { code: 'Digit0', normal: '0', shift: '' },
+            { code: 'Minus', normal: '-', shift: '=' },
+            { code: 'Equal', normal: '^', shift: '~' },
+            { code: 'IntlYen', normal: '¥', shift: '|' },
+            { code: 'Backspace', label: '←BS', class: 'backspace' }
+        ],
+        symbolKeys: {
+            'BracketLeft': { normal: '@', shift: '`' },
+            'BracketRight': { normal: '[', shift: '{' },
+            'Backslash': { normal: ']', shift: '}' },
+            'Semicolon': { normal: ';', shift: '+' },
+            'Quote': { normal: ':', shift: '*' },
+            'Comma': { normal: ',', shift: '<' },
+            'Period': { normal: '.', shift: '>' },
+            'Slash': { normal: '/', shift: '?' }
+        }
+    },
+    'jis-win': {
+        name: 'JIS (Windows)',
+        numberRow: [
+            { code: 'Backquote', normal: '半/全', shift: '' },
+            { code: 'Digit1', normal: '1', shift: '!' },
+            { code: 'Digit2', normal: '2', shift: '"' },
+            { code: 'Digit3', normal: '3', shift: '#' },
+            { code: 'Digit4', normal: '4', shift: '$' },
+            { code: 'Digit5', normal: '5', shift: '%' },
+            { code: 'Digit6', normal: '6', shift: '&' },
+            { code: 'Digit7', normal: '7', shift: "'" },
+            { code: 'Digit8', normal: '8', shift: '(' },
+            { code: 'Digit9', normal: '9', shift: ')' },
+            { code: 'Digit0', normal: '0', shift: '~' },
+            { code: 'Minus', normal: '-', shift: '=' },
+            { code: 'Equal', normal: '^', shift: '~' },
+            { code: 'IntlYen', normal: '¥', shift: '|' },
+            { code: 'Backspace', label: '←BS', class: 'backspace' }
+        ],
+        symbolKeys: {
+            'BracketLeft': { normal: '@', shift: '`' },
+            'BracketRight': { normal: '[', shift: '{' },
+            'Backslash': { normal: ']', shift: '}' },
+            'Semicolon': { normal: ';', shift: '+' },
+            'Quote': { normal: ':', shift: '*' },
+            'Comma': { normal: ',', shift: '<' },
+            'Period': { normal: '.', shift: '>' },
+            'Slash': { normal: '/', shift: '?' },
+            'IntlRo': { normal: '\\', shift: '_' }
+        }
+    }
+};
 
 // UIとの連携
 document.addEventListener('DOMContentLoaded', () => {
     const controller = new CH9329Controller();
+    let inputMode = 'batch';  // 'batch' or 'realtime'
+    let isRealtimeActive = false;
+    let currentLayout = 'us';  // デフォルトレイアウト
     
     // 要素取得
     const connectBtn = document.getElementById('connectBtn');
@@ -314,12 +458,58 @@ document.addEventListener('DOMContentLoaded', () => {
     const screenWidthInput = document.getElementById('screenWidth');
     const screenHeightInput = document.getElementById('screenHeight');
     
+    // キーボードレイアウト選択
+    const keyboardLayoutSelect = document.getElementById('keyboardLayout');
+    keyboardLayoutSelect.addEventListener('change', () => {
+        const layout = keyboardLayoutSelect.value;
+        if (layout !== 'auto') {
+            currentLayout = layout;
+            controller.setKeyboardLayout(layout);
+            generateKeyboardLayout(layout);
+        }
+    });
+    
+    // ページ読み込み時の自動検出
+    function autoDetectLayout() {
+        // ブラウザ言語とOSから推測
+        const lang = navigator.language || navigator.userLanguage;
+        const platform = navigator.platform;
+        
+        if (lang.startsWith('ja')) {
+            if (platform.includes('Mac')) {
+                currentLayout = 'jis-mac';
+            } else if (platform.includes('Win')) {
+                currentLayout = 'jis-win';
+            } else {
+                currentLayout = 'jis-mac'; // デフォルトJIS
+            }
+        } else {
+            currentLayout = 'us';
+        }
+        
+        // UI更新
+        keyboardLayoutSelect.value = currentLayout;
+        controller.setKeyboardLayout(currentLayout);
+        generateKeyboardLayout(currentLayout);
+        
+        controller.log(`自動検出レイアウト: ${KEYBOARD_LAYOUTS[currentLayout].name}`, 'info');
+    }
+    
+    // 初期化時にレイアウトを設定
+    if (keyboardLayoutSelect.value === 'auto') {
+        autoDetectLayout();
+    } else {
+        currentLayout = keyboardLayoutSelect.value;
+        generateKeyboardLayout(currentLayout);
+    }
+    
     // 接続ボタン
     connectBtn.addEventListener('click', async () => {
         try {
             const baudRate = parseInt(baudRateSelect.value);
             controller.screenWidth = parseInt(screenWidthInput.value);
             controller.screenHeight = parseInt(screenHeightInput.value);
+            controller.setKeyboardLayout(keyboardLayoutSelect.value);
             
             await controller.connect(baudRate);
             
@@ -483,6 +673,335 @@ document.addEventListener('DOMContentLoaded', () => {
     textInput.addEventListener('keydown', async (e) => {
         if (e.ctrlKey && e.key === 'Enter' && controller.isConnected) {
             await controller.sendText(textInput.value);
+        }
+    });
+    
+    // モード切替
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    const batchModeContainer = document.getElementById('batchModeContainer');
+    const realtimeModeContainer = document.getElementById('realtimeModeContainer');
+    const realtimeIndicator = document.getElementById('realtimeIndicator');
+    const keyHistory = document.getElementById('keyHistory');
+    
+    modeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mode = btn.dataset.mode;
+            inputMode = mode;
+            
+            // ボタンのアクティブ状態更新
+            modeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // コンテナ表示切替
+            if (mode === 'batch') {
+                batchModeContainer.style.display = 'block';
+                realtimeModeContainer.style.display = 'none';
+                realtimeIndicator.classList.remove('active');
+                isRealtimeActive = false;
+            } else {
+                batchModeContainer.style.display = 'none';
+                realtimeModeContainer.style.display = 'block';
+                realtimeIndicator.classList.add('active');
+                isRealtimeActive = true;
+                keyHistory.innerHTML = '';
+            }
+        });
+    });
+    
+    // ビジュアルキーボード生成関数
+    function generateKeyboardLayout(layoutName) {
+        const layout = KEYBOARD_LAYOUTS[layoutName] || KEYBOARD_LAYOUTS['us'];
+        
+        // 数字キー行
+        const numberRow = document.getElementById('numberRow');
+        numberRow.innerHTML = '';
+        layout.numberRow.forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.class || ''}`;
+            keyDiv.dataset.code = key.code;
+            if (key.normal) keyDiv.dataset.key = key.normal;
+            if (key.label) {
+                keyDiv.textContent = key.label;
+            } else if (key.shift) {
+                keyDiv.innerHTML = `${key.shift}<br>${key.normal}`;
+            } else {
+                keyDiv.textContent = key.normal;
+            }
+            numberRow.appendChild(keyDiv);
+        });
+        
+        // QWERTY行
+        const qwertyRow = document.getElementById('qwertyRow');
+        qwertyRow.innerHTML = '';
+        const qwertyKeys = [
+            { code: 'Tab', label: 'Tab', class: 'tab' },
+            { code: 'KeyQ', key: 'q', label: 'Q' },
+            { code: 'KeyW', key: 'w', label: 'W' },
+            { code: 'KeyE', key: 'e', label: 'E' },
+            { code: 'KeyR', key: 'r', label: 'R' },
+            { code: 'KeyT', key: 't', label: 'T' },
+            { code: 'KeyY', key: 'y', label: 'Y' },
+            { code: 'KeyU', key: 'u', label: 'U' },
+            { code: 'KeyI', key: 'i', label: 'I' },
+            { code: 'KeyO', key: 'o', label: 'O' },
+            { code: 'KeyP', key: 'p', label: 'P' }
+        ];
+        
+        // 記号キー追加
+        const symbolCodes = ['BracketLeft', 'BracketRight', 'Backslash'];
+        symbolCodes.forEach(code => {
+            if (layout.symbolKeys[code]) {
+                const sym = layout.symbolKeys[code];
+                qwertyKeys.push({
+                    code: code,
+                    key: sym.normal,
+                    label: sym.shift ? `${sym.shift}<br>${sym.normal}` : sym.normal,
+                    isHtml: true
+                });
+            }
+        });
+        
+        qwertyKeys.forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.class || ''}`;
+            keyDiv.dataset.code = key.code;
+            if (key.key) keyDiv.dataset.key = key.key;
+            if (key.isHtml) {
+                keyDiv.innerHTML = key.label;
+            } else {
+                keyDiv.textContent = key.label;
+            }
+            qwertyRow.appendChild(keyDiv);
+        });
+        
+        // ASDF行
+        const asdfRow = document.getElementById('asdfRow');
+        asdfRow.innerHTML = '';
+        const asdfKeys = [
+            { code: 'CapsLock', label: 'Caps', class: 'caps' },
+            { code: 'KeyA', key: 'a', label: 'A' },
+            { code: 'KeyS', key: 's', label: 'S' },
+            { code: 'KeyD', key: 'd', label: 'D' },
+            { code: 'KeyF', key: 'f', label: 'F' },
+            { code: 'KeyG', key: 'g', label: 'G' },
+            { code: 'KeyH', key: 'h', label: 'H' },
+            { code: 'KeyJ', key: 'j', label: 'J' },
+            { code: 'KeyK', key: 'k', label: 'K' },
+            { code: 'KeyL', key: 'l', label: 'L' }
+        ];
+        
+        // 記号キー追加
+        ['Semicolon', 'Quote'].forEach(code => {
+            if (layout.symbolKeys[code]) {
+                const sym = layout.symbolKeys[code];
+                asdfKeys.push({
+                    code: code,
+                    key: sym.normal,
+                    label: sym.shift ? `${sym.shift}<br>${sym.normal}` : sym.normal,
+                    isHtml: true
+                });
+            }
+        });
+        
+        asdfKeys.push({ code: 'Enter', label: 'Enter', class: 'enter' });
+        
+        asdfKeys.forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.class || ''}`;
+            keyDiv.dataset.code = key.code;
+            if (key.key) keyDiv.dataset.key = key.key;
+            if (key.isHtml) {
+                keyDiv.innerHTML = key.label;
+            } else {
+                keyDiv.textContent = key.label;
+            }
+            asdfRow.appendChild(keyDiv);
+        });
+        
+        // ZXCV行
+        const zxcvRow = document.getElementById('zxcvRow');
+        zxcvRow.innerHTML = '';
+        const zxcvKeys = [
+            { code: 'ShiftLeft', label: 'Shift', class: 'shift' },
+            { code: 'KeyZ', key: 'z', label: 'Z' },
+            { code: 'KeyX', key: 'x', label: 'X' },
+            { code: 'KeyC', key: 'c', label: 'C' },
+            { code: 'KeyV', key: 'v', label: 'V' },
+            { code: 'KeyB', key: 'b', label: 'B' },
+            { code: 'KeyN', key: 'n', label: 'N' },
+            { code: 'KeyM', key: 'm', label: 'M' }
+        ];
+        
+        // 記号キー追加
+        ['Comma', 'Period', 'Slash'].forEach(code => {
+            if (layout.symbolKeys[code]) {
+                const sym = layout.symbolKeys[code];
+                zxcvKeys.push({
+                    code: code,
+                    key: sym.normal,
+                    label: sym.shift ? `${sym.shift}<br>${sym.normal}` : sym.normal,
+                    isHtml: true
+                });
+            }
+        });
+        
+        // JIS Windowsの場合、ローマ字キー追加
+        if (layoutName === 'jis-win' && layout.symbolKeys['IntlRo']) {
+            const sym = layout.symbolKeys['IntlRo'];
+            zxcvKeys.push({
+                code: 'IntlRo',
+                key: sym.normal,
+                label: sym.shift ? `${sym.shift}<br>${sym.normal}` : sym.normal,
+                isHtml: true
+            });
+        }
+        
+        zxcvKeys.push({ code: 'ShiftRight', label: 'Shift', class: 'shift' });
+        
+        zxcvKeys.forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.class || ''}`;
+            keyDiv.dataset.code = key.code;
+            if (key.key) keyDiv.dataset.key = key.key;
+            if (key.isHtml) {
+                keyDiv.innerHTML = key.label;
+            } else {
+                keyDiv.textContent = key.label;
+            }
+            zxcvRow.appendChild(keyDiv);
+        });
+        
+        // スペースバー行
+        const spaceRow = document.getElementById('spaceRow');
+        spaceRow.innerHTML = '';
+        const spaceKeys = [
+            { code: 'ControlLeft', label: 'Ctrl', class: 'ctrl' },
+            { code: 'MetaLeft', label: layoutName.includes('win') ? 'Win' : 'Cmd' },
+            { code: 'AltLeft', label: 'Alt', class: 'alt' }
+        ];
+        
+        // JIS Macの場合、英数/かなキー追加
+        if (layoutName === 'jis-mac') {
+            spaceKeys.push({ code: 'Lang2', label: '英数' });
+        }
+        
+        spaceKeys.push({ code: 'Space', key: ' ', label: 'Space', class: 'space' });
+        
+        if (layoutName === 'jis-mac') {
+            spaceKeys.push({ code: 'Lang1', label: 'かな' });
+        }
+        
+        spaceKeys.push(
+            { code: 'AltRight', label: 'Alt', class: 'alt' },
+            { code: 'MetaRight', label: layoutName.includes('win') ? 'Win' : 'Cmd' },
+            { code: 'ControlRight', label: 'Ctrl', class: 'ctrl' }
+        );
+        
+        spaceKeys.forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.class || ''}`;
+            keyDiv.dataset.code = key.code;
+            if (key.key) keyDiv.dataset.key = key.key;
+            keyDiv.textContent = key.label;
+            spaceRow.appendChild(keyDiv);
+        });
+        
+        // イベントリスナー再設定
+        setupKeyboardEventListeners();
+    }
+    
+    // キーボードイベントリスナー設定
+    function setupKeyboardEventListeners() {
+        const visualKeys = document.querySelectorAll('.visual-keyboard .key');
+        visualKeys.forEach(key => {
+            key.addEventListener('mousedown', async () => {
+                if (!controller.isConnected) return;
+                
+                key.classList.add('pressed');
+                const code = key.dataset.code;
+                const keyChar = key.dataset.key;
+                
+                // キー送信
+                await handleKeyPress(code, keyChar, key);
+            });
+            
+            key.addEventListener('mouseup', () => {
+                setTimeout(() => key.classList.remove('pressed'), 100);
+            });
+            
+            key.addEventListener('mouseleave', () => {
+                key.classList.remove('pressed');
+            });
+        });
+    }
+    
+    
+    // キー入力処理関数
+    async function handleKeyPress(code, key, element = null) {
+        if (!controller.isConnected) return;
+        
+        // キー履歴に追加
+        if (isRealtimeActive) {
+            const historyEntry = document.createElement('div');
+            historyEntry.textContent = `${new Date().toLocaleTimeString()}: ${code} ${key ? `(${key})` : ''}`;
+            keyHistory.appendChild(historyEntry);
+            if (keyHistory.children.length > 10) {
+                keyHistory.removeChild(keyHistory.firstChild);
+            }
+        }
+        
+        // 特殊キーの処理
+        const specialKeys = {
+            'Enter': 'ENTER',
+            'Tab': 'TAB',
+            'Escape': 'ESC',
+            'Backspace': 'BACKSPACE',
+            'Space': 'SPACE',
+            'ShiftLeft': 'SHIFT',
+            'ShiftRight': 'SHIFT',
+            'ControlLeft': 'CTRL',
+            'ControlRight': 'CTRL',
+            'AltLeft': 'ALT',
+            'AltRight': 'ALT',
+            'MetaLeft': 'WINDOWS',
+            'MetaRight': 'WINDOWS',
+            'CapsLock': 'CAPS'
+        };
+        
+        if (specialKeys[code]) {
+            await controller.sendSpecialKey(specialKeys[code]);
+        } else if (key && key.length === 1) {
+            await controller.sendText(key);
+        }
+    }
+    
+    
+    // 物理キーボードイベント処理
+    document.addEventListener('keydown', async (e) => {
+        if (!isRealtimeActive || !controller.isConnected) return;
+        
+        // テキストエリアなどの入力要素がフォーカスされている場合はスキップ
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+        
+        e.preventDefault();
+        
+        // ビジュアルキーボードのキーをハイライト
+        const visualKey = document.querySelector(`.visual-keyboard .key[data-code="${e.code}"]`);
+        if (visualKey) {
+            visualKey.classList.add('pressed');
+        }
+        
+        // キー送信
+        await handleKeyPress(e.code, e.key);
+    });
+    
+    document.addEventListener('keyup', (e) => {
+        if (!isRealtimeActive) return;
+        
+        // ビジュアルキーボードのハイライト解除
+        const visualKey = document.querySelector(`.visual-keyboard .key[data-code="${e.code}"]`);
+        if (visualKey) {
+            setTimeout(() => visualKey.classList.remove('pressed'), 100);
         }
     });
 });

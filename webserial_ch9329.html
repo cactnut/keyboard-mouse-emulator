@@ -199,11 +199,116 @@
         input[type="range"] {
             flex: 1;
         }
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .mode-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        .visual-keyboard {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .keyboard-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+            justify-content: center;
+        }
+        .key {
+            min-width: 40px;
+            height: 40px;
+            background: linear-gradient(180deg, #f0f0f0 0%, #d0d0d0 100%);
+            border: 1px solid #999;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.1s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            user-select: none;
+            position: relative;
+        }
+        .key:hover {
+            background: linear-gradient(180deg, #fff 0%, #e0e0e0 100%);
+        }
+        .key:active, .key.pressed {
+            transform: translateY(2px);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .key.space {
+            min-width: 250px;
+        }
+        .key.backspace, .key.tab, .key.caps, .key.enter {
+            min-width: 70px;
+        }
+        .key.shift {
+            min-width: 90px;
+        }
+        .key.ctrl, .key.alt {
+            min-width: 50px;
+        }
+        .key-label {
+            font-size: 10px;
+        }
+        .function-key {
+            min-width: 35px;
+            height: 35px;
+            font-size: 10px;
+        }
+        .key-history {
+            background: #1e1e1e;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 100px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        #realtimeIndicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #dc3545;
+            margin-left: 10px;
+            transition: background 0.3s;
+        }
+        #realtimeIndicator.active {
+            background: #28a745;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎮 CH9329 WebSerial Controller</h1>
+        <h1>💻️ CH9329 WebSerial Controller</h1>
         
         <div class="warning">
             <h3>⚠️ 対応ブラウザ</h3>
@@ -235,16 +340,87 @@
                     <input type="number" id="screenWidth" value="1920" min="1"> x 
                     <input type="number" id="screenHeight" value="1080" min="1">
                 </label>
+                <label style="margin-left: 20px">キーボードレイアウト: 
+                    <select id="keyboardLayout">
+                        <option value="auto" selected>自動検出</option>
+                        <option value="us">US (ANSI)</option>
+                        <option value="jis-mac">JIS (Mac)</option>
+                        <option value="jis-win">JIS (Windows)</option>
+                    </select>
+                </label>
             </div>
             <button id="connectBtn">接続</button>
             <button id="disconnectBtn" disabled>切断</button>
         </div>
 
         <div class="section">
-            <h2>⌨️ キーボード入力</h2>
-            <textarea id="textInput" placeholder="送信するテキストを入力..."></textarea>
-            <button id="sendTextBtn" disabled>テキスト送信</button>
-            <button id="clearTextBtn">クリア</button>
+            <h2>⌨️ キーボード入力 <span id="realtimeIndicator"></span></h2>
+            
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="batch">バッチモード</button>
+                <button class="mode-btn" data-mode="realtime">リアルタイムモード</button>
+            </div>
+            
+            <div id="batchModeContainer">
+                <textarea id="textInput" placeholder="送信するテキストを入力..."></textarea>
+                <button id="sendTextBtn" disabled>テキスト送信</button>
+                <button id="clearTextBtn">クリア</button>
+            </div>
+            
+            <div id="realtimeModeContainer" style="display: none;">
+                <div style="padding: 20px; background: #f0f0f0; border-radius: 5px; text-align: center;">
+                    <p style="margin: 0; font-size: 16px;">🎹 リアルタイムモード有効</p>
+                    <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">キーボードの入力が直接送信されます</p>
+                </div>
+                <div class="key-history" id="keyHistory"></div>
+            </div>
+            
+            <div class="visual-keyboard" id="visualKeyboard">
+                <!-- ファンクションキー行 -->
+                <div class="keyboard-row">
+                    <div class="key function-key" data-code="Escape">ESC</div>
+                    <div style="width: 30px;"></div>
+                    <div class="key function-key" data-code="F1">F1</div>
+                    <div class="key function-key" data-code="F2">F2</div>
+                    <div class="key function-key" data-code="F3">F3</div>
+                    <div class="key function-key" data-code="F4">F4</div>
+                    <div style="width: 20px;"></div>
+                    <div class="key function-key" data-code="F5">F5</div>
+                    <div class="key function-key" data-code="F6">F6</div>
+                    <div class="key function-key" data-code="F7">F7</div>
+                    <div class="key function-key" data-code="F8">F8</div>
+                    <div style="width: 20px;"></div>
+                    <div class="key function-key" data-code="F9">F9</div>
+                    <div class="key function-key" data-code="F10">F10</div>
+                    <div class="key function-key" data-code="F11">F11</div>
+                    <div class="key function-key" data-code="F12">F12</div>
+                </div>
+                
+                <!-- 数字キー行 -->
+                <div class="keyboard-row" id="numberRow">
+                    <!-- 動的に生成 -->
+                </div>
+                
+                <!-- QWERTY行 -->
+                <div class="keyboard-row" id="qwertyRow">
+                    <!-- 動的に生成 -->
+                </div>
+                
+                <!-- ASDF行 -->
+                <div class="keyboard-row" id="asdfRow">
+                    <!-- 動的に生成 -->
+                </div>
+                
+                <!-- ZXCV行 -->
+                <div class="keyboard-row" id="zxcvRow">
+                    <!-- 動的に生成 -->
+                </div>
+                
+                <!-- スペースバー行 -->
+                <div class="keyboard-row" id="spaceRow">
+                    <!-- 動的に生成 -->
+                </div>
+            </div>
             
             <div class="button-group">
                 <button class="key-btn" data-key="ENTER" disabled>Enter</button>
