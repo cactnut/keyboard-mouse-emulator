@@ -1,0 +1,31 @@
+# Ignore personal / temporary files
+CLAUDE.md
+claude.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual env
+.venv/
+venv/
+ENV/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Coverage / test
+.pytest_cache/
+.coverage*
+htmlcov/
+
+# Misc
+*.swp
