@@ -9,7 +9,8 @@ class CH9329Controller {
         this.isConnected = false;
         this.screenWidth = 1920;
         this.screenHeight = 1080;
-        this.keyboardLayout = 'auto';  // 'auto', 'us', 'jis'
+        this.sourceLayout = 'auto';  // UI表示用のキーボード配列（送信には影響しない）
+        this.targetLayout = 'us';    // 被操作側PCのキーボード認識（送信キーコードを決定）
         
         // キーコード定義
         this.SPECIAL_KEYS = {
@@ -22,7 +23,17 @@ class CH9329Controller {
             ALT: 0xE2,
             TAB: 0x2B,
             ESC: 0x58,
-            WINDOWS: 0xE3
+            WINDOWS: 0xE3,
+            PAGEUP: 0x4B,
+            PAGEDOWN: 0x4E,
+            HOME: 0x4A,
+            END: 0x4D,
+            INSERT: 0x49,
+            DELETE: 0x4C,
+            UP: 0x52,
+            DOWN: 0x51,
+            LEFT: 0x50,
+            RIGHT: 0x4F
         };
         
         // メディアキー定義
@@ -51,44 +62,47 @@ class CH9329Controller {
     initKeyTable() {
         this.KEY_TABLE = {};
         
-        // USキーボード用特殊文字（デフォルト）
-        const usSpecialChars = {
+        // 被操作側PCがUS配列として認識している場合のマッピング
+        const targetUSMapping = {
             '!': [2, 0x1E], '"': [2, 0x1F], '#': [2, 0x20], '$': [2, 0x21], 
-            '%': [2, 0x22], '&': [2, 0x23], "'": [2, 0x24], '=': [2, 0x2D],
-            '-': [0, 0x2D], '~': [2, 0x2E], '^': [0, 0x2E], '|': [2, 0x89],
-            '\\': [0, 0x89], '`': [2, 0x2F], '@': [0, 0x2F], '{': [2, 0x30],
-            '[': [0, 0x30], '}': [2, 0x31], ']': [0, 0x31], '*': [2, 0x34],
-            ':': [0, 0x34], '+': [2, 0x33], ';': [0, 0x33], '<': [2, 0x36],
-            ',': [0, 0x36], '>': [2, 0x37], '.': [0, 0x37], '?': [2, 0x38],
-            '/': [0, 0x38], '_': [2, 0x87], '(': [2, 0x26], ')': [2, 0x27]
+            '%': [2, 0x22], '&': [2, 0x23], "'": [2, 0x34], 
+            '(': [2, 0x26], ')': [2, 0x27], 
+            '*': [2, 0x25], '+': [2, 0x2E], 
+            '-': [0, 0x2D], '=': [0, 0x2E], '_': [2, 0x2D], 
+            '~': [2, 0x35], '`': [0, 0x35], 
+            '@': [2, 0x1F], '^': [2, 0x23], 
+            '[': [0, 0x2F], '{': [2, 0x2F], ']': [0, 0x30], '}': [2, 0x30],
+            '\\': [0, 0x31], '|': [2, 0x31],  // US配列の場合
+            ';': [0, 0x33], ':': [2, 0x33], 
+            ',': [0, 0x36], '<': [2, 0x36], '.': [0, 0x37], '>': [2, 0x37],
+            '/': [0, 0x38], '?': [2, 0x38]
         };
         
-        // JISキーボード用特殊文字
-        const jisSpecialChars = {
+        // 被操作側PCがJIS配列として認識している場合のマッピング
+        const targetJISMapping = {
             '!': [2, 0x1E], '"': [2, 0x1F], '#': [2, 0x20], '$': [2, 0x21], 
-            '%': [2, 0x22], '&': [2, 0x23], "'": [2, 0x24], '=': [2, 0x2D],
-            '-': [0, 0x2D], '~': [2, 0x2E], '^': [0, 0x2E], '|': [2, 0x89],
-            '\\': [0, 0x89], '`': [2, 0x2F], '@': [0, 0x2F], '{': [2, 0x30],
-            '[': [0, 0x30], '}': [2, 0x31], ']': [0, 0x31], '*': [2, 0x34],
-            ':': [0, 0x34], '+': [2, 0x33], ';': [0, 0x33], '<': [2, 0x36],
-            ',': [0, 0x36], '>': [2, 0x37], '.': [0, 0x37], '?': [2, 0x38],
-            '/': [0, 0x38], '_': [2, 0x87], 
+            '%': [2, 0x22], '&': [2, 0x23], "'": [2, 0x24], 
             '(': [2, 0x25],  // JIS: Shift+8
-            ')': [2, 0x26]   // JIS: Shift+9
+            ')': [2, 0x26],  // JIS: Shift+9
+            '=': [2, 0x2D], '-': [0, 0x2D], '~': [2, 0x2E], '^': [0, 0x2E],
+            '@': [0, 0x2F], '`': [2, 0x2F],
+            '[': [0, 0x30], '{': [2, 0x30], ']': [0, 0x31], '}': [2, 0x31],
+            '\\': [0, 0x89], // JIS配列として認識されている場合
+            '|': [2, 0x89],   // JISの|はShift+0x89
+            '¥': [0, 0x89],   // 円マークも同じキー
+            ';': [0, 0x33], '+': [2, 0x33], ':': [0, 0x34], '*': [2, 0x34],
+            ',': [0, 0x36], '<': [2, 0x36], '.': [0, 0x37], '>': [2, 0x37],
+            '/': [0, 0x38], '?': [2, 0x38], '_': [2, 0x87]  // JISの_はInt1キー
         };
         
-        // キーボードレイアウトに基づいて選択
+        // 被操作側PCの配列に基づいて選択
         let specialChars;
-        if (this.keyboardLayout === 'jis-mac' || this.keyboardLayout === 'jis-win') {
-            specialChars = jisSpecialChars;
-            this.log(`キーボードレイアウト: ${this.keyboardLayout.toUpperCase()}`, 'info');
-        } else if (this.keyboardLayout === 'auto') {
-            // 自動検出は後で実装
-            specialChars = usSpecialChars;
-            this.log('キーボードレイアウト: AUTO (USを仮設定)', 'info');
+        if (this.targetLayout === 'jis') {
+            specialChars = targetJISMapping;
+            this.log(`被操作側PC: JIS配列として認識`, 'info');
         } else {
-            specialChars = usSpecialChars;
-            this.log('キーボードレイアウト: US', 'info');
+            specialChars = targetUSMapping;
+            this.log(`被操作側PC: US配列として認識`, 'info');
         }
         
         Object.assign(this.KEY_TABLE, specialChars);
@@ -212,9 +226,12 @@ class CH9329Controller {
     
     async sendSpecialKey(keyName) {
         const keyCode = this.SPECIAL_KEYS[keyName];
-        if (!keyCode) return;
+        if (!keyCode) {
+            this.log(`未定義の特殊キー: ${keyName}`, 'warning');
+            return;
+        }
         
-        this.log(`特殊キー: ${keyName}`, 'info');
+        this.log(`特殊キー: ${keyName} (0x${keyCode.toString(16).padStart(2, '0').toUpperCase()})`, 'info');
         
         // 修飾キーの特別処理
         if (keyName === 'SHIFT') {
@@ -329,26 +346,31 @@ class CH9329Controller {
         }
     }
     
-    detectJISLayout() {
-        // ブラウザの言語設定やOS情報からJISレイアウトを推測
+    detectSourceLayout() {
+        // UI表示用のキーボード配列を簡易検出
         const lang = navigator.language || navigator.userLanguage;
-        const platform = navigator.platform;
-        
-        // 日本語環境かつMacの場合はJISレイアウトの可能性が高い
-        if (lang.startsWith('ja') && platform.includes('Mac')) {
-            return true;
-        }
-        
-        return false;
+        return lang.startsWith('ja') ? 'jis' : 'us';
     }
     
-    setKeyboardLayout(layout) {
-        this.keyboardLayout = layout;
+    setSourceLayout(layout) {
+        // UI表示用のレイアウト設定（送信には影響しない）
+        this.sourceLayout = (layout === 'auto') ? this.detectSourceLayout() : layout;
+        const autoText = (layout === 'auto') ? ' (自動検出)' : ' (手動設定)';
+        this.log(`UI表示: ${this.sourceLayout.toUpperCase()}配列${autoText}`, 'info');
+        return this.sourceLayout;
+    }
+    
+    setTargetLayout(layout) {
+        this.targetLayout = layout;
         this.initKeyTable();  // キーテーブルを再初期化
     }
 }
 
 // キーボードレイアウト定義
+// 注意: これらはUI表示用の簡略化されたレイアウトです。
+// 実際にはUS-Mac、US-Win、JIS-Mac、JIS-Winの4種類が存在しますが、
+// 入力機能はOSがキーイベントを正規化するため問題なく動作します。
+// UIの完全な再現よりシンプルさを優先しています。
 const KEYBOARD_LAYOUTS = {
     'us': {
         name: 'US (ANSI)',
@@ -379,40 +401,11 @@ const KEYBOARD_LAYOUTS = {
             'Slash': { normal: '/', shift: '?' }
         }
     },
-    'jis-mac': {
-        name: 'JIS (Mac)',
+    'jis': {
+        name: 'JIS',
         numberRow: [
-            { code: 'Backquote', normal: '`', shift: '~' },
-            { code: 'Digit1', normal: '1', shift: '!' },
-            { code: 'Digit2', normal: '2', shift: '"' },
-            { code: 'Digit3', normal: '3', shift: '#' },
-            { code: 'Digit4', normal: '4', shift: '$' },
-            { code: 'Digit5', normal: '5', shift: '%' },
-            { code: 'Digit6', normal: '6', shift: '&' },
-            { code: 'Digit7', normal: '7', shift: "'" },
-            { code: 'Digit8', normal: '8', shift: '(' },
-            { code: 'Digit9', normal: '9', shift: ')' },
-            { code: 'Digit0', normal: '0', shift: '' },
-            { code: 'Minus', normal: '-', shift: '=' },
-            { code: 'Equal', normal: '^', shift: '~' },
-            { code: 'IntlYen', normal: '¥', shift: '|' },
-            { code: 'Backspace', label: '←BS', class: 'backspace' }
-        ],
-        symbolKeys: {
-            'BracketLeft': { normal: '@', shift: '`' },
-            'BracketRight': { normal: '[', shift: '{' },
-            'Backslash': { normal: ']', shift: '}' },
-            'Semicolon': { normal: ';', shift: '+' },
-            'Quote': { normal: ':', shift: '*' },
-            'Comma': { normal: ',', shift: '<' },
-            'Period': { normal: '.', shift: '>' },
-            'Slash': { normal: '/', shift: '?' }
-        }
-    },
-    'jis-win': {
-        name: 'JIS (Windows)',
-        numberRow: [
-            { code: 'Backquote', normal: '半/全', shift: '' },
+            // プラットフォームによって全角/半角キーか`キーか変わる
+            { code: 'Backquote', normal: '全/半', shift: '', label: '全/半', isZenkaku: true },
             { code: 'Digit1', normal: '1', shift: '!' },
             { code: 'Digit2', normal: '2', shift: '"' },
             { code: 'Digit3', normal: '3', shift: '#' },
@@ -436,8 +429,7 @@ const KEYBOARD_LAYOUTS = {
             'Quote': { normal: ':', shift: '*' },
             'Comma': { normal: ',', shift: '<' },
             'Period': { normal: '.', shift: '>' },
-            'Slash': { normal: '/', shift: '?' },
-            'IntlRo': { normal: '\\', shift: '_' }
+            'Slash': { normal: '/', shift: '?' }
         }
     }
 };
@@ -445,7 +437,6 @@ const KEYBOARD_LAYOUTS = {
 // UIとの連携
 document.addEventListener('DOMContentLoaded', () => {
     const controller = new CH9329Controller();
-    let inputMode = 'batch';  // 'batch' or 'realtime'
     let isRealtimeActive = false;
     let currentLayout = 'us';  // デフォルトレイアウト
     
@@ -458,50 +449,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const screenWidthInput = document.getElementById('screenWidth');
     const screenHeightInput = document.getElementById('screenHeight');
     
-    // キーボードレイアウト選択
-    const keyboardLayoutSelect = document.getElementById('keyboardLayout');
-    keyboardLayoutSelect.addEventListener('change', () => {
-        const layout = keyboardLayoutSelect.value;
-        if (layout !== 'auto') {
-            currentLayout = layout;
-            controller.setKeyboardLayout(layout);
-            generateKeyboardLayout(layout);
+    // エミュレート側PCキーボードレイアウト選択
+    const sourceLayoutSelect = document.getElementById('sourceKeyboardLayout');
+    const detectedLayoutSpan = document.getElementById('detectedLayout');
+    const targetLayoutSelect = document.getElementById('targetKeyboardLayout');
+    
+    // エミュレート側レイアウト自動検出と表示
+    function updateSourceLayout() {
+        const value = sourceLayoutSelect.value;
+        const detectedLayout = controller.setSourceLayout(value);
+        
+        if (value === 'auto') {
+            detectedLayoutSpan.textContent = `(検出: ${detectedLayout.toUpperCase()}配列)`;
+            currentLayout = detectedLayout;
+        } else {
+            detectedLayoutSpan.textContent = '';
+            currentLayout = value;
         }
+        generateKeyboardLayout(currentLayout);
+    }
+    
+    sourceLayoutSelect.addEventListener('change', updateSourceLayout);
+    
+    // 被操作側PCキーボードレイアウト選択
+    targetLayoutSelect.addEventListener('change', () => {
+        const layout = targetLayoutSelect.value;
+        controller.setTargetLayout(layout);
     });
     
-    // ページ読み込み時の自動検出
-    function autoDetectLayout() {
-        // ブラウザ言語とOSから推測
-        const lang = navigator.language || navigator.userLanguage;
-        const platform = navigator.platform;
-        
-        if (lang.startsWith('ja')) {
-            if (platform.includes('Mac')) {
-                currentLayout = 'jis-mac';
-            } else if (platform.includes('Win')) {
-                currentLayout = 'jis-win';
-            } else {
-                currentLayout = 'jis-mac'; // デフォルトJIS
-            }
-        } else {
-            currentLayout = 'us';
-        }
-        
-        // UI更新
-        keyboardLayoutSelect.value = currentLayout;
-        controller.setKeyboardLayout(currentLayout);
-        generateKeyboardLayout(currentLayout);
-        
-        controller.log(`自動検出レイアウト: ${KEYBOARD_LAYOUTS[currentLayout].name}`, 'info');
-    }
-    
     // 初期化時にレイアウトを設定
-    if (keyboardLayoutSelect.value === 'auto') {
-        autoDetectLayout();
-    } else {
-        currentLayout = keyboardLayoutSelect.value;
-        generateKeyboardLayout(currentLayout);
-    }
+    updateSourceLayout();
+    controller.setTargetLayout(targetLayoutSelect.value);
     
     // 接続ボタン
     connectBtn.addEventListener('click', async () => {
@@ -509,7 +487,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const baudRate = parseInt(baudRateSelect.value);
             controller.screenWidth = parseInt(screenWidthInput.value);
             controller.screenHeight = parseInt(screenHeightInput.value);
-            controller.setKeyboardLayout(keyboardLayoutSelect.value);
+            // 接続時に再設定（すでに初期化時に設定済みなので不要かも）
+            controller.setTargetLayout(targetLayoutSelect.value);
             
             await controller.connect(baudRate);
             
@@ -519,9 +498,12 @@ document.addEventListener('DOMContentLoaded', () => {
             disconnectBtn.disabled = false;
             
             // 全ボタン有効化
-            document.querySelectorAll('.key-btn, .mod-btn, .media-btn, .mouse-button, #sendTextBtn, #leftClickBtn, #rightClickBtn, #middleClickBtn, #moveRelBtn, #scrollBtn').forEach(btn => {
+            document.querySelectorAll('.key-btn, .media-btn, .mouse-button, #sendTextBtn, #leftClickBtn, #rightClickBtn, #middleClickBtn, #moveRelBtn, #scrollBtn').forEach(btn => {
                 btn.disabled = false;
             });
+            
+            // オーバーレイ表示（接続後はクリック可能に）
+            keyboardOverlay.style.display = 'flex';
         } catch (error) {
             alert(`接続エラー: ${error.message}`);
         }
@@ -537,9 +519,13 @@ document.addEventListener('DOMContentLoaded', () => {
         disconnectBtn.disabled = true;
         
         // 全ボタン無効化
-        document.querySelectorAll('.key-btn, .mod-btn, .media-btn, .mouse-button, #sendTextBtn, #leftClickBtn, #rightClickBtn, #middleClickBtn, #moveRelBtn, #scrollBtn').forEach(btn => {
+        document.querySelectorAll('.key-btn, .media-btn, .mouse-button, #sendTextBtn, #leftClickBtn, #rightClickBtn, #middleClickBtn, #moveRelBtn, #scrollBtn').forEach(btn => {
             btn.disabled = true;
         });
+        
+        // リアルタイムモード終了
+        disableRealtimeMode();
+        keyboardOverlay.style.display = 'flex';
     });
     
     // テキスト送信
@@ -558,8 +544,8 @@ document.addEventListener('DOMContentLoaded', () => {
         textInput.value = '';
     });
     
-    // キーボードボタン
-    document.querySelectorAll('.key-btn, .mod-btn').forEach(btn => {
+    // 特殊キーボタン
+    document.querySelectorAll('.key-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
             const key = btn.dataset.key;
             await controller.sendSpecialKey(key);
@@ -676,37 +662,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // モード切替
-    const modeBtns = document.querySelectorAll('.mode-btn');
-    const batchModeContainer = document.getElementById('batchModeContainer');
-    const realtimeModeContainer = document.getElementById('realtimeModeContainer');
-    const realtimeIndicator = document.getElementById('realtimeIndicator');
-    const keyHistory = document.getElementById('keyHistory');
+    // リアルタイムモード切替
+    const textInputContainer = document.getElementById('textInputContainer');
+    const realtimeStatus = document.getElementById('realtimeStatus');
+    const keyboardOverlay = document.getElementById('keyboardOverlay');
+    const visualKeyboard = document.getElementById('visualKeyboard');
+    const exitRealtimeBtn = document.getElementById('exitRealtimeBtn');
     
-    modeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const mode = btn.dataset.mode;
-            inputMode = mode;
-            
-            // ボタンのアクティブ状態更新
-            modeBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            // コンテナ表示切替
-            if (mode === 'batch') {
-                batchModeContainer.style.display = 'block';
-                realtimeModeContainer.style.display = 'none';
-                realtimeIndicator.classList.remove('active');
-                isRealtimeActive = false;
-            } else {
-                batchModeContainer.style.display = 'none';
-                realtimeModeContainer.style.display = 'block';
-                realtimeIndicator.classList.add('active');
-                isRealtimeActive = true;
-                keyHistory.innerHTML = '';
-            }
-        });
+    // キーボードオーバーレイクリックでリアルタイムモード開始
+    keyboardOverlay.addEventListener('click', () => {
+        if (!controller.isConnected) {
+            alert('先にデバイスを接続してください');
+            return;
+        }
+        
+        enableRealtimeMode();
     });
+    
+    // リアルタイムモード終了ボタン
+    exitRealtimeBtn.addEventListener('click', () => {
+        disableRealtimeMode();
+    });
+    
+    function enableRealtimeMode() {
+        isRealtimeActive = true;
+        keyboardOverlay.style.display = 'none';
+        visualKeyboard.style.cursor = 'default';
+        textInputContainer.style.display = 'none';
+        realtimeStatus.style.display = 'block';
+        
+        // キーボード背景を変更
+        visualKeyboard.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        visualKeyboard.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.5)';
+    }
+    
+    function disableRealtimeMode() {
+        isRealtimeActive = false;
+        keyboardOverlay.style.display = 'flex';
+        visualKeyboard.style.cursor = 'pointer';
+        textInputContainer.style.display = 'block';
+        realtimeStatus.style.display = 'none';
+        
+        // キーボード背景を元に戻す
+        visualKeyboard.style.background = '#2a2a2a';
+        visualKeyboard.style.boxShadow = 'none';
+    }
     
     // ビジュアルキーボード生成関数
     function generateKeyboardLayout(layoutName) {
@@ -719,14 +719,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const keyDiv = document.createElement('div');
             keyDiv.className = `key ${key.class || ''}`;
             keyDiv.dataset.code = key.code;
-            if (key.normal) keyDiv.dataset.key = key.normal;
-            if (key.label) {
-                keyDiv.textContent = key.label;
-            } else if (key.shift) {
-                keyDiv.innerHTML = `${key.shift}<br>${key.normal}`;
+            
+            // プラットフォーム別の表示調整
+            if (key.isZenkaku) {
+                // Windowsの場合は全角/半角、Macの場合は`~を表示
+                if (navigator.platform.includes('Win')) {
+                    keyDiv.textContent = '全/半';
+                    keyDiv.dataset.key = '';  // 全角/半角キーの送信
+                } else {
+                    keyDiv.innerHTML = '~<br>`';
+                    keyDiv.dataset.key = '`';
+                }
+            } else if (key.normal) {
+                keyDiv.dataset.key = key.normal;
+                if (key.label) {
+                    keyDiv.textContent = key.label;
+                } else if (key.shift) {
+                    keyDiv.innerHTML = `${key.shift}<br>${key.normal}`;
+                } else {
+                    keyDiv.textContent = key.normal;
+                }
             } else {
-                keyDiv.textContent = key.normal;
+                keyDiv.textContent = key.label || '';
             }
+            
             numberRow.appendChild(keyDiv);
         });
         
@@ -845,8 +861,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // JIS Windowsの場合、ローマ字キー追加
-        if (layoutName === 'jis-win' && layout.symbolKeys['IntlRo']) {
+        // JISの場合、ローマ字キー追加（もし定義されていれば）
+        if (layoutName === 'jis' && layout.symbolKeys && layout.symbolKeys['IntlRo']) {
             const sym = layout.symbolKeys['IntlRo'];
             zxcvKeys.push({
                 code: 'IntlRo',
@@ -876,24 +892,24 @@ document.addEventListener('DOMContentLoaded', () => {
         spaceRow.innerHTML = '';
         const spaceKeys = [
             { code: 'ControlLeft', label: 'Ctrl', class: 'ctrl' },
-            { code: 'MetaLeft', label: layoutName.includes('win') ? 'Win' : 'Cmd' },
+            { code: 'MetaLeft', label: navigator.platform.includes('Win') ? 'Win' : 'Cmd' },
             { code: 'AltLeft', label: 'Alt', class: 'alt' }
         ];
         
-        // JIS Macの場合、英数/かなキー追加
-        if (layoutName === 'jis-mac') {
+        // JISの場合、英数/かなキー追加（Mac環境の場合）
+        if (layoutName === 'jis' && navigator.platform.includes('Mac')) {
             spaceKeys.push({ code: 'Lang2', label: '英数' });
         }
         
         spaceKeys.push({ code: 'Space', key: ' ', label: 'Space', class: 'space' });
         
-        if (layoutName === 'jis-mac') {
+        if (layoutName === 'jis' && navigator.platform.includes('Mac')) {
             spaceKeys.push({ code: 'Lang1', label: 'かな' });
         }
         
         spaceKeys.push(
             { code: 'AltRight', label: 'Alt', class: 'alt' },
-            { code: 'MetaRight', label: layoutName.includes('win') ? 'Win' : 'Cmd' },
+            { code: 'MetaRight', label: navigator.platform.includes('Win') ? 'Win' : 'Cmd' },
             { code: 'ControlRight', label: 'Ctrl', class: 'ctrl' }
         );
         
@@ -940,16 +956,6 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleKeyPress(code, key, element = null) {
         if (!controller.isConnected) return;
         
-        // キー履歴に追加
-        if (isRealtimeActive) {
-            const historyEntry = document.createElement('div');
-            historyEntry.textContent = `${new Date().toLocaleTimeString()}: ${code} ${key ? `(${key})` : ''}`;
-            keyHistory.appendChild(historyEntry);
-            if (keyHistory.children.length > 10) {
-                keyHistory.removeChild(keyHistory.firstChild);
-            }
-        }
-        
         // 特殊キーの処理
         const specialKeys = {
             'Enter': 'ENTER',
@@ -965,7 +971,17 @@ document.addEventListener('DOMContentLoaded', () => {
             'AltRight': 'ALT',
             'MetaLeft': 'WINDOWS',
             'MetaRight': 'WINDOWS',
-            'CapsLock': 'CAPS'
+            'CapsLock': 'CAPS',
+            'PageUp': 'PAGEUP',
+            'PageDown': 'PAGEDOWN',
+            'Home': 'HOME',
+            'End': 'END',
+            'Insert': 'INSERT',
+            'Delete': 'DELETE',
+            'ArrowUp': 'UP',
+            'ArrowDown': 'DOWN',
+            'ArrowLeft': 'LEFT',
+            'ArrowRight': 'RIGHT'
         };
         
         if (specialKeys[code]) {
@@ -982,6 +998,19 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // テキストエリアなどの入力要素がフォーカスされている場合はスキップ
         if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+        
+        // Escapeキーでリアルタイムモード終了
+        if (e.key === 'Escape' && isRealtimeActive) {
+            disableRealtimeMode();
+            return;
+        }
+        
+        // MacのCommand+BackspaceをWindowsのDeleteとして処理
+        if (e.metaKey && e.key === 'Backspace') {
+            e.preventDefault();
+            await controller.sendSpecialKey('DELETE');
+            return;
+        }
         
         e.preventDefault();
         

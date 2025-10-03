@@ -199,24 +199,6 @@
         input[type="range"] {
             flex: 1;
         }
-        .mode-toggle {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
-        }
-        .mode-btn {
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .mode-btn.active {
-            background: #667eea;
-            color: white;
-        }
         .visual-keyboard {
             background: #2a2a2a;
             padding: 20px;
@@ -287,19 +269,6 @@
             overflow-y: auto;
             margin-top: 10px;
         }
-        #realtimeIndicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #dc3545;
-            margin-left: 10px;
-            transition: background 0.3s;
-        }
-        #realtimeIndicator.active {
-            background: #28a745;
-            animation: pulse 1s infinite;
-        }
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -340,42 +309,53 @@
                     <input type="number" id="screenWidth" value="1920" min="1"> x 
                     <input type="number" id="screenHeight" value="1080" min="1">
                 </label>
-                <label style="margin-left: 20px">キーボードレイアウト: 
-                    <select id="keyboardLayout">
+            </div>
+            <div style="margin-top: 10px;">
+                <label>キーボード表示（UI用）: 
+                    <select id="sourceKeyboardLayout">
                         <option value="auto" selected>自動検出</option>
-                        <option value="us">US (ANSI)</option>
-                        <option value="jis-mac">JIS (Mac)</option>
-                        <option value="jis-win">JIS (Windows)</option>
+                        <option value="us">US配列</option>
+                        <option value="jis">JIS配列</option>
                     </select>
                 </label>
+                <span id="detectedLayout" style="margin-left: 10px; color: #667eea; font-size: 12px;"></span>
+            </div>
+            <div style="margin-top: 10px;">
+                <label>接続先Windowsのキーボード認識（重要）: 
+                    <select id="targetKeyboardLayout">
+                        <option value="us" selected>US配列として認識</option>
+                        <option value="jis">JIS配列として認識</option>
+                    </select>
+                </label>
+                <span style="margin-left: 10px; color: #666; font-size: 12px;">
+                    ※Windowsのキーボード設定を確認して選択
+                </span>
             </div>
             <button id="connectBtn">接続</button>
             <button id="disconnectBtn" disabled>切断</button>
         </div>
 
         <div class="section">
-            <h2>⌨️ キーボード入力 <span id="realtimeIndicator"></span></h2>
+            <h2>⌨️ キーボード入力</h2>
             
-            <div class="mode-toggle">
-                <button class="mode-btn active" data-mode="batch">バッチモード</button>
-                <button class="mode-btn" data-mode="realtime">リアルタイムモード</button>
-            </div>
-            
-            <div id="batchModeContainer">
+            <div id="textInputContainer">
                 <textarea id="textInput" placeholder="送信するテキストを入力..."></textarea>
                 <button id="sendTextBtn" disabled>テキスト送信</button>
                 <button id="clearTextBtn">クリア</button>
             </div>
             
-            <div id="realtimeModeContainer" style="display: none;">
-                <div style="padding: 20px; background: #f0f0f0; border-radius: 5px; text-align: center;">
-                    <p style="margin: 0; font-size: 16px;">🎹 リアルタイムモード有効</p>
-                    <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">キーボードの入力が直接送信されます</p>
-                </div>
-                <div class="key-history" id="keyHistory"></div>
+            <div id="realtimeStatus" style="display: none; padding: 15px; background: #d4edda; border: 1px solid #28a745; border-radius: 5px; margin: 10px 0; text-align: center;">
+                <p style="margin: 0; font-weight: bold; color: #155724;">🎹 リアルタイムモード有効</p>
+                <p style="margin: 5px 0 0 0; color: #155724; font-size: 14px;">キーボード入力が直接送信されます</p>
+                <button id="exitRealtimeBtn" style="margin-top: 10px;">リアルタイムモードを終了</button>
             </div>
             
-            <div class="visual-keyboard" id="visualKeyboard">
+            <div class="visual-keyboard" id="visualKeyboard" title="クリックしてリアルタイムモードを有効化" style="cursor: pointer; position: relative;">
+                <div id="keyboardOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(102, 126, 234, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; z-index: 10; transition: opacity 0.3s;">
+                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+                        <p style="margin: 0; font-size: 18px; color: #333;">🕹️ クリックしてリアルタイムモードを開始</p>
+                    </div>
+                </div>
                 <!-- ファンクションキー行 -->
                 <div class="keyboard-row">
                     <div class="key function-key" data-code="Escape">ESC</div>
@@ -422,19 +402,20 @@
                 </div>
             </div>
             
-            <div class="button-group">
-                <button class="key-btn" data-key="ENTER" disabled>Enter</button>
-                <button class="key-btn" data-key="TAB" disabled>Tab</button>
-                <button class="key-btn" data-key="ESC" disabled>ESC</button>
-                <button class="key-btn" data-key="BACKSPACE" disabled>Backspace</button>
-                <button class="key-btn" data-key="SPACE" disabled>Space</button>
+            <div class="button-group" style="margin-top: 20px;">
+                <button class="key-btn" data-key="PAGEUP" disabled>Page Up</button>
+                <button class="key-btn" data-key="PAGEDOWN" disabled>Page Down</button>
+                <button class="key-btn" data-key="HOME" disabled>Home</button>
+                <button class="key-btn" data-key="END" disabled>End</button>
+                <button class="key-btn" data-key="INSERT" disabled>Insert</button>
+                <button class="key-btn" data-key="DELETE" disabled>Delete</button>
             </div>
             
             <div class="button-group">
-                <button class="mod-btn" data-key="CTRL" disabled>Ctrl</button>
-                <button class="mod-btn" data-key="SHIFT" disabled>Shift</button>
-                <button class="mod-btn" data-key="ALT" disabled>Alt</button>
-                <button class="mod-btn" data-key="WINDOWS" disabled>Win/Cmd</button>
+                <button class="key-btn" data-key="UP" disabled>↑</button>
+                <button class="key-btn" data-key="DOWN" disabled>↓</button>
+                <button class="key-btn" data-key="LEFT" disabled>←</button>
+                <button class="key-btn" data-key="RIGHT" disabled>→</button>
             </div>
         </div>
 
