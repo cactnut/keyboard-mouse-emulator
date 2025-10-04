@@ -279,6 +279,17 @@
         .key.ctrl, .key.alt {
             min-width: 50px;
         }
+        .key.cmd {
+            min-width: 70px;
+            font-size: 11px;
+        }
+        .key.win {
+            min-width: 50px;
+        }
+        .key.menu {
+            min-width: 50px;
+            font-size: 11px;
+        }
         .key-label {
             font-size: 10px;
         }
@@ -355,8 +366,10 @@
                 <label>キーボード表示（UI用）: 
                     <select id="sourceKeyboardLayout">
                         <option value="auto" selected>自動検出</option>
-                        <option value="us">US配列</option>
-                        <option value="jis">JIS配列</option>
+                        <option value="us-win">US配列 (Windows)</option>
+                        <option value="us-mac">US配列 (Mac)</option>
+                        <option value="jis-win">JIS配列 (Windows)</option>
+                        <option value="jis-mac">JIS配列 (Mac)</option>
                     </select>
                 </label>
                 <span id="detectedLayout" style="margin-left: 10px; color: #667eea; font-size: 12px;"></span>

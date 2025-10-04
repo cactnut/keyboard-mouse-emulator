@@ -404,8 +404,6 @@ const KEYBOARD_LAYOUTS = {
     'jis': {
         name: 'JIS',
         numberRow: [
-            // プラットフォームによって全角/半角キーか`キーか変わる
-            { code: 'Backquote', normal: '全/半', shift: '', label: '全/半', isZenkaku: true },
             { code: 'Digit1', normal: '1', shift: '!' },
             { code: 'Digit2', normal: '2', shift: '"' },
             { code: 'Digit3', normal: '3', shift: '#' },
@@ -438,7 +436,6 @@ const KEYBOARD_LAYOUTS = {
 document.addEventListener('DOMContentLoaded', () => {
     const controller = new CH9329Controller();
     let isRealtimeActive = false;
-    let currentLayout = 'us';  // デフォルトレイアウト
     
     // 要素取得
     const connectBtn = document.getElementById('connectBtn');
@@ -457,16 +454,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // エミュレート側レイアウト自動検出と表示
     function updateSourceLayout() {
         const value = sourceLayoutSelect.value;
-        const detectedLayout = controller.setSourceLayout(value);
+        let layoutType, osType;
         
         if (value === 'auto') {
-            detectedLayoutSpan.textContent = `(検出: ${detectedLayout.toUpperCase()}配列)`;
-            currentLayout = detectedLayout;
+            // 自動検出
+            osType = getOSInfo();
+            const detectedLayout = controller.setSourceLayout(value);
+            layoutType = detectedLayout;
+            detectedLayoutSpan.textContent = `(検出: ${detectedLayout.toUpperCase()}配列 ${osType === 'mac' ? 'Mac' : 'Windows'})`;
         } else {
+            // 手動選択
             detectedLayoutSpan.textContent = '';
-            currentLayout = value;
+            const parts = value.split('-');
+            layoutType = parts[0]; // 'us' or 'jis'
+            
+            // 'win' を 'windows' に変換
+            if (parts[1] === 'win') {
+                osType = 'windows';
+            } else if (parts[1] === 'mac') {
+                osType = 'mac';
+            } else {
+                osType = getOSInfo();
+            }
+            
+            // controllerには配列タイプのみ設定
+            controller.setSourceLayout(layoutType);
         }
-        generateKeyboardLayout(currentLayout);
+        
+        generateKeyboardLayout(layoutType, osType);
     }
     
     sourceLayoutSelect.addEventListener('change', updateSourceLayout);
@@ -487,8 +502,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const baudRate = parseInt(baudRateSelect.value);
             controller.screenWidth = parseInt(screenWidthInput.value);
             controller.screenHeight = parseInt(screenHeightInput.value);
-            // 接続時に再設定（すでに初期化時に設定済みなので不要かも）
-            controller.setTargetLayout(targetLayoutSelect.value);
             
             await controller.connect(baudRate);
             
@@ -498,7 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
             disconnectBtn.disabled = false;
             
             // 全ボタン有効化
-            document.querySelectorAll('.key-btn, .media-btn, .mouse-button, #sendTextBtn, #leftClickBtn, #rightClickBtn, #middleClickBtn, #moveRelBtn, #scrollBtn').forEach(btn => {
+            document.querySelectorAll('.media-btn, .mouse-button, #sendTextBtn, #leftClickBtn, #rightClickBtn, #middleClickBtn, #moveRelBtn, #scrollBtn').forEach(btn => {
                 btn.disabled = false;
             });
             
@@ -519,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
         disconnectBtn.disabled = true;
         
         // 全ボタン無効化
-        document.querySelectorAll('.key-btn, .media-btn, .mouse-button, #sendTextBtn, #leftClickBtn, #rightClickBtn, #middleClickBtn, #moveRelBtn, #scrollBtn').forEach(btn => {
+        document.querySelectorAll('.media-btn, .mouse-button, #sendTextBtn, #leftClickBtn, #rightClickBtn, #middleClickBtn, #moveRelBtn, #scrollBtn').forEach(btn => {
             btn.disabled = true;
         });
         
@@ -542,14 +555,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     clearTextBtn.addEventListener('click', () => {
         textInput.value = '';
-    });
-    
-    // 特殊キーボタン
-    document.querySelectorAll('.key-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const key = btn.dataset.key;
-            await controller.sendSpecialKey(key);
-        });
     });
     
     // メディアキー
@@ -708,29 +713,46 @@ document.addEventListener('DOMContentLoaded', () => {
         visualKeyboard.style.boxShadow = 'none';
     }
     
+    // OS判別ヘルパー関数
+    function getOSInfo() {
+        const platform = navigator.platform.toLowerCase();
+        const userAgent = navigator.userAgent.toLowerCase();
+        
+        if (platform.includes('mac') || userAgent.includes('mac')) {
+            return 'mac';
+        } else if (platform.includes('win') || userAgent.includes('win')) {
+            return 'windows';
+        } else if (platform.includes('linux') || userAgent.includes('linux')) {
+            return 'linux';
+        }
+        return 'windows'; // デフォルト
+    }
+    
     // ビジュアルキーボード生成関数
-    function generateKeyboardLayout(layoutName) {
+    function generateKeyboardLayout(layoutName, osTypeParam = null) {
         const layout = KEYBOARD_LAYOUTS[layoutName] || KEYBOARD_LAYOUTS['us'];
+        const osType = osTypeParam || getOSInfo();
         
         // 数字キー行
         const numberRow = document.getElementById('numberRow');
         numberRow.innerHTML = '';
+        
+        // WindowsのJIS配列の場合のみ、全角/半角キーを追加
+        if (layoutName === 'jis' && osType === 'windows') {
+            const zenkakuKey = document.createElement('div');
+            zenkakuKey.className = 'key';
+            zenkakuKey.dataset.code = 'Backquote';
+            zenkakuKey.textContent = '全/半';
+            zenkakuKey.dataset.key = '';  // 全角/半角キーの送信
+            numberRow.appendChild(zenkakuKey);
+        }
+        
         layout.numberRow.forEach(key => {
             const keyDiv = document.createElement('div');
             keyDiv.className = `key ${key.class || ''}`;
             keyDiv.dataset.code = key.code;
             
-            // プラットフォーム別の表示調整
-            if (key.isZenkaku) {
-                // Windowsの場合は全角/半角、Macの場合は`~を表示
-                if (navigator.platform.includes('Win')) {
-                    keyDiv.textContent = '全/半';
-                    keyDiv.dataset.key = '';  // 全角/半角キーの送信
-                } else {
-                    keyDiv.innerHTML = '~<br>`';
-                    keyDiv.dataset.key = '`';
-                }
-            } else if (key.normal) {
+            if (key.normal) {
                 keyDiv.dataset.key = key.normal;
                 if (key.label) {
                     keyDiv.textContent = key.label;
@@ -890,28 +912,52 @@ document.addEventListener('DOMContentLoaded', () => {
         // スペースバー行
         const spaceRow = document.getElementById('spaceRow');
         spaceRow.innerHTML = '';
-        const spaceKeys = [
-            { code: 'ControlLeft', label: 'Ctrl', class: 'ctrl' },
-            { code: 'MetaLeft', label: navigator.platform.includes('Win') ? 'Win' : 'Cmd' },
-            { code: 'AltLeft', label: 'Alt', class: 'alt' }
-        ];
         
-        // JISの場合、英数/かなキー追加（Mac環境の場合）
-        if (layoutName === 'jis' && navigator.platform.includes('Mac')) {
-            spaceKeys.push({ code: 'Lang2', label: '英数' });
+        // OS別のキー配列
+        let spaceKeys = [];
+        
+        if (osType === 'mac') {
+            // Mac配列
+            spaceKeys = [
+                { code: 'ControlLeft', label: 'Control', class: 'ctrl' },
+                { code: 'AltLeft', label: 'Option', class: 'alt' },
+                { code: 'MetaLeft', label: 'Command', class: 'cmd' }
+            ];
+            
+            // JISの場合、英数キー追加
+            if (layoutName === 'jis') {
+                spaceKeys.push({ code: 'Lang2', label: '英数' });
+            }
+            
+            spaceKeys.push({ code: 'Space', key: ' ', label: 'Space', class: 'space' });
+            
+            // JISの場合、かなキー追加
+            if (layoutName === 'jis') {
+                spaceKeys.push({ code: 'Lang1', label: 'かな' });
+            }
+            
+            spaceKeys.push(
+                { code: 'MetaRight', label: 'Command', class: 'cmd' },
+                { code: 'AltRight', label: 'Option', class: 'alt' },
+                { code: 'ControlRight', label: 'Control', class: 'ctrl' }
+            );
+        } else {
+            // Windows/Linux配列
+            spaceKeys = [
+                { code: 'ControlLeft', label: 'Ctrl', class: 'ctrl' },
+                { code: 'MetaLeft', label: 'Win', class: 'win' },
+                { code: 'AltLeft', label: 'Alt', class: 'alt' }
+            ];
+            
+            spaceKeys.push({ code: 'Space', key: ' ', label: 'Space', class: 'space' });
+            
+            spaceKeys.push(
+                { code: 'AltRight', label: 'Alt', class: 'alt' },
+                { code: 'MetaRight', label: 'Win', class: 'win' },
+                { code: 'ContextMenu', label: 'Menu', class: 'menu' },
+                { code: 'ControlRight', label: 'Ctrl', class: 'ctrl' }
+            );
         }
-        
-        spaceKeys.push({ code: 'Space', key: ' ', label: 'Space', class: 'space' });
-        
-        if (layoutName === 'jis' && navigator.platform.includes('Mac')) {
-            spaceKeys.push({ code: 'Lang1', label: 'かな' });
-        }
-        
-        spaceKeys.push(
-            { code: 'AltRight', label: 'Alt', class: 'alt' },
-            { code: 'MetaRight', label: navigator.platform.includes('Win') ? 'Win' : 'Cmd' },
-            { code: 'ControlRight', label: 'Ctrl', class: 'ctrl' }
-        );
         
         spaceKeys.forEach(key => {
             const keyDiv = document.createElement('div');
