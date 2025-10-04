@@ -205,11 +205,40 @@
             border-radius: 10px;
             margin-top: 20px;
         }
+        .keyboard-container {
+            display: flex;
+            gap: 20px;
+        }
+        .main-keyboard {
+            flex: 1;
+        }
+        .special-keys-area {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
         .keyboard-row {
             display: flex;
             gap: 5px;
             margin-bottom: 5px;
             justify-content: center;
+        }
+        .nav-key-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        .arrow-key-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 5px;
+            justify-content: center;
+        }
+        .nav-keys-section {
+            margin-top: 0;
+        }
+        .arrow-keys-section {
+            margin-top: 0;
         }
         .key {
             min-width: 40px;
@@ -257,6 +286,18 @@
             min-width: 35px;
             height: 35px;
             font-size: 10px;
+        }
+        .key.nav-key {
+            min-width: 45px;
+            height: 38px;
+            font-size: 11px;
+            background: linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 100%);
+        }
+        .key.arrow-key {
+            min-width: 40px;
+            height: 38px;
+            font-size: 16px;
+            background: linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 100%);
         }
         .key-history {
             background: #1e1e1e;
@@ -356,66 +397,92 @@
                         <p style="margin: 0; font-size: 18px; color: #333;">🕹️ クリックしてリアルタイムモードを開始</p>
                     </div>
                 </div>
-                <!-- ファンクションキー行 -->
-                <div class="keyboard-row">
-                    <div class="key function-key" data-code="Escape">ESC</div>
-                    <div style="width: 30px;"></div>
-                    <div class="key function-key" data-code="F1">F1</div>
-                    <div class="key function-key" data-code="F2">F2</div>
-                    <div class="key function-key" data-code="F3">F3</div>
-                    <div class="key function-key" data-code="F4">F4</div>
-                    <div style="width: 20px;"></div>
-                    <div class="key function-key" data-code="F5">F5</div>
-                    <div class="key function-key" data-code="F6">F6</div>
-                    <div class="key function-key" data-code="F7">F7</div>
-                    <div class="key function-key" data-code="F8">F8</div>
-                    <div style="width: 20px;"></div>
-                    <div class="key function-key" data-code="F9">F9</div>
-                    <div class="key function-key" data-code="F10">F10</div>
-                    <div class="key function-key" data-code="F11">F11</div>
-                    <div class="key function-key" data-code="F12">F12</div>
-                </div>
                 
-                <!-- 数字キー行 -->
-                <div class="keyboard-row" id="numberRow">
-                    <!-- 動的に生成 -->
+                <!-- キーボードコンテナ -->
+                <div class="keyboard-container">
+                    <!-- メインキーボードエリア -->
+                    <div class="main-keyboard">
+                        <!-- ファンクションキー行 -->
+                        <div class="keyboard-row">
+                            <div class="key function-key" data-code="Escape">ESC</div>
+                            <div style="width: 30px;"></div>
+                            <div class="key function-key" data-code="F1">F1</div>
+                            <div class="key function-key" data-code="F2">F2</div>
+                            <div class="key function-key" data-code="F3">F3</div>
+                            <div class="key function-key" data-code="F4">F4</div>
+                            <div style="width: 20px;"></div>
+                            <div class="key function-key" data-code="F5">F5</div>
+                            <div class="key function-key" data-code="F6">F6</div>
+                            <div class="key function-key" data-code="F7">F7</div>
+                            <div class="key function-key" data-code="F8">F8</div>
+                            <div style="width: 20px;"></div>
+                            <div class="key function-key" data-code="F9">F9</div>
+                            <div class="key function-key" data-code="F10">F10</div>
+                            <div class="key function-key" data-code="F11">F11</div>
+                            <div class="key function-key" data-code="F12">F12</div>
+                        </div>
+                        
+                        <!-- 数字キー行 -->
+                        <div class="keyboard-row" id="numberRow">
+                            <!-- 動的に生成 -->
+                        </div>
+                        
+                        <!-- QWERTY行 -->
+                        <div class="keyboard-row" id="qwertyRow">
+                            <!-- 動的に生成 -->
+                        </div>
+                        
+                        <!-- ASDF行 -->
+                        <div class="keyboard-row" id="asdfRow">
+                            <!-- 動的に生成 -->
+                        </div>
+                        
+                        <!-- ZXCV行 -->
+                        <div class="keyboard-row" id="zxcvRow">
+                            <!-- 動的に生成 -->
+                        </div>
+                        
+                        <!-- スペースバー行 -->
+                        <div class="keyboard-row" id="spaceRow">
+                            <!-- 動的に生成 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 特殊キーエリア（右側） -->
+                    <div class="special-keys-area">
+                        <!-- 上部：ナビゲーションキー -->
+                        <div class="nav-keys-section">
+                            <div class="nav-key-row">
+                                <div class="key nav-key" data-code="PrintScreen">PrtSc</div>
+                                <div class="key nav-key" data-code="ScrollLock">Scroll</div>
+                                <div class="key nav-key" data-code="Pause">Pause</div>
+                            </div>
+                            <div style="height: 10px;"></div>
+                            <div class="nav-key-row">
+                                <div class="key nav-key" data-code="Insert">Ins</div>
+                                <div class="key nav-key" data-code="Home">Home</div>
+                                <div class="key nav-key" data-code="PageUp">PgUp</div>
+                            </div>
+                            <div class="nav-key-row">
+                                <div class="key nav-key" data-code="Delete">Del</div>
+                                <div class="key nav-key" data-code="End">End</div>
+                                <div class="key nav-key" data-code="PageDown">PgDn</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 下部：矢印キー -->
+                        <div class="arrow-keys-section">
+                            <div class="arrow-key-row">
+                                <div class="key arrow-key" data-code="ArrowUp">↑</div>
+                            </div>
+                            <div class="arrow-key-row">
+                                <div class="key arrow-key" data-code="ArrowLeft">←</div>
+                                <div class="key arrow-key" data-code="ArrowDown">↓</div>
+                                <div class="key arrow-key" data-code="ArrowRight">→</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
-                <!-- QWERTY行 -->
-                <div class="keyboard-row" id="qwertyRow">
-                    <!-- 動的に生成 -->
-                </div>
-                
-                <!-- ASDF行 -->
-                <div class="keyboard-row" id="asdfRow">
-                    <!-- 動的に生成 -->
-                </div>
-                
-                <!-- ZXCV行 -->
-                <div class="keyboard-row" id="zxcvRow">
-                    <!-- 動的に生成 -->
-                </div>
-                
-                <!-- スペースバー行 -->
-                <div class="keyboard-row" id="spaceRow">
-                    <!-- 動的に生成 -->
-                </div>
-            </div>
-            
-            <div class="button-group" style="margin-top: 20px;">
-                <button class="key-btn" data-key="PAGEUP" disabled>Page Up</button>
-                <button class="key-btn" data-key="PAGEDOWN" disabled>Page Down</button>
-                <button class="key-btn" data-key="HOME" disabled>Home</button>
-                <button class="key-btn" data-key="END" disabled>End</button>
-                <button class="key-btn" data-key="INSERT" disabled>Insert</button>
-                <button class="key-btn" data-key="DELETE" disabled>Delete</button>
-            </div>
-            
-            <div class="button-group">
-                <button class="key-btn" data-key="UP" disabled>↑</button>
-                <button class="key-btn" data-key="DOWN" disabled>↓</button>
-                <button class="key-btn" data-key="LEFT" disabled>←</button>
-                <button class="key-btn" data-key="RIGHT" disabled>→</button>
             </div>
         </div>
 
