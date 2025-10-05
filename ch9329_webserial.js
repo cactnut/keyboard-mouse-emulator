@@ -450,6 +450,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendTextBtn = document.getElementById('sendTextBtn');
     const clearTextBtn = document.getElementById('clearTextBtn');
     const touchpad = document.getElementById('touchpad');
+    const touchpadArea = document.getElementById('touchpadArea');
+    const touchpadLeft = document.getElementById('touchpadLeft');
+    const touchpadMiddle = document.getElementById('touchpadMiddle');
+    const touchpadRight = document.getElementById('touchpadRight');
+    const scrollIndicator = document.getElementById('scrollIndicator');
     const textInputContainer = document.getElementById('textInputContainer');
     const realtimeStatus = document.getElementById('realtimeStatus');
     const keyboardOverlay = document.getElementById('keyboardOverlay');
@@ -590,13 +595,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // マウスキャプチャモードの切り替え
     function enableMouseCapture() {
         isMouseCaptureActive = true;
-        touchpad.style.background = 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)';
-        touchpad.style.border = '2px solid #ffd700';
-        touchpad.innerHTML = '<div style="color: white; text-align: center; line-height: 150px; font-weight: bold;">🖱️ マウスキャプチャ中 (ESCで解除)</div>';
+        
+        // UIフィードバック - タッチパッド全体の背景色を変更
+        touchpadArea.style.background = 'linear-gradient(180deg, #d0e0ff 0%, #b0d0ff 100%)';
+        touchpadLeft.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
+        touchpadMiddle.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
+        touchpadRight.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
         
         // Pointer Lock APIでマウスカーソルをロック
-        if (touchpad.requestPointerLock) {
-            touchpad.requestPointerLock();
+        if (touchpadArea.requestPointerLock) {
+            touchpadArea.requestPointerLock();
         }
         
         addGlobalLog('マウスキャプチャモード開始', 'info');
@@ -605,9 +613,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function disableMouseCapture() {
         isMouseCaptureActive = false;
         isDragging = false;
-        touchpad.style.background = 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%)';
-        touchpad.style.border = '2px solid #555';
-        touchpad.innerHTML = '';
+        
+        // UIを元に戻す
+        touchpadArea.style.background = 'linear-gradient(180deg, #f5f5f5 0%, #e0e0e0 100%)';
+        touchpadLeft.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
+        touchpadMiddle.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
+        touchpadRight.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
+        scrollIndicator.classList.remove('active');
         
         // Pointer Lockを解除
         if (document.exitPointerLock) {
@@ -617,8 +629,8 @@ document.addEventListener('DOMContentLoaded', () => {
         addGlobalLog('マウスキャプチャモード終了', 'info');
     }
     
-    // タッチパッドクリックでマウスキャプチャ開始
-    touchpad.addEventListener('click', (e) => {
+    // タッチパッドエリアクリックでマウスキャプチャ開始
+    touchpadArea.addEventListener('click', (e) => {
         if (!controller.isConnected) return;
         if (!isMouseCaptureActive) {
             e.preventDefault();
@@ -627,9 +639,79 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // タッチパッドボタンのクリック処理
+    touchpadLeft.addEventListener('mousedown', async (e) => {
+        if (!controller.isConnected) return;
+        e.stopPropagation();
+        touchpadLeft.classList.add('active');
+    });
+    
+    touchpadLeft.addEventListener('mouseup', async (e) => {
+        if (!controller.isConnected) return;
+        e.stopPropagation();
+        touchpadLeft.classList.remove('active');
+        await controller.clickMouse('LEFT');
+        
+        // クリックフィードバック
+        touchpadLeft.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+        setTimeout(() => {
+            if (isMouseCaptureActive) {
+                touchpadLeft.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
+            } else {
+                touchpadLeft.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
+            }
+        }, 200);
+    });
+    
+    touchpadMiddle.addEventListener('mousedown', async (e) => {
+        if (!controller.isConnected) return;
+        e.stopPropagation();
+        touchpadMiddle.classList.add('active');
+    });
+    
+    touchpadMiddle.addEventListener('mouseup', async (e) => {
+        if (!controller.isConnected) return;
+        e.stopPropagation();
+        touchpadMiddle.classList.remove('active');
+        await controller.clickMouse('MIDDLE');
+        
+        // クリックフィードバック
+        touchpadMiddle.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+        setTimeout(() => {
+            if (isMouseCaptureActive) {
+                touchpadMiddle.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
+            } else {
+                touchpadMiddle.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
+            }
+        }, 200);
+    });
+    
+    touchpadRight.addEventListener('mousedown', async (e) => {
+        if (!controller.isConnected) return;
+        e.stopPropagation();
+        touchpadRight.classList.add('active');
+    });
+    
+    touchpadRight.addEventListener('mouseup', async (e) => {
+        if (!controller.isConnected) return;
+        e.stopPropagation();
+        touchpadRight.classList.remove('active');
+        await controller.clickMouse('RIGHT');
+        
+        // クリックフィードバック
+        touchpadRight.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+        setTimeout(() => {
+            if (isMouseCaptureActive) {
+                touchpadRight.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
+            } else {
+                touchpadRight.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
+            }
+        }, 200);
+    });
+    
     // Pointer Lock状態の変更を監視
     document.addEventListener('pointerlockchange', () => {
-        if (document.pointerLockElement === touchpad) {
+        if (document.pointerLockElement === touchpadArea) {
             // ポインターロックが成功
             addGlobalLog('ポインターロック有効', 'debug');
             
@@ -677,7 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.stopPropagation();
         
         // Pointer Lock APIを使用している場合はmovementX/Yを使用
-        if (document.pointerLockElement === touchpad) {
+        if (document.pointerLockElement === touchpadArea) {
             const deltaX = e.movementX || 0;
             const deltaY = e.movementY || 0;
             
@@ -708,10 +790,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!wasDragging || (Math.abs(e.clientX - lastMouseX) < 3 && Math.abs(e.clientY - lastMouseY) < 3)) {
             if (e.button === 0) {
                 await controller.clickMouse('LEFT');
+                // UIフィードバック
+                touchpadLeft.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+                setTimeout(() => {
+                    if (isMouseCaptureActive) {
+                        touchpadLeft.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
+                    }
+                }, 200);
             } else if (e.button === 2) {
                 await controller.clickMouse('RIGHT');
+                // UIフィードバック
+                touchpadRight.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+                setTimeout(() => {
+                    if (isMouseCaptureActive) {
+                        touchpadRight.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
+                    }
+                }, 200);
             } else if (e.button === 1) {
                 await controller.clickMouse('MIDDLE');
+                // UIフィードバック
+                touchpadMiddle.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+                setTimeout(() => {
+                    if (isMouseCaptureActive) {
+                        touchpadMiddle.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
+                    }
+                }, 200);
             }
         }
     });
@@ -735,8 +838,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const scrollAmount = Math.sign(e.deltaY) * -3; // スクロール方向を反転
         await controller.scrollMouse(scrollAmount);
         
+        // スクロールインジケーターを表示
+        showScrollIndicator(scrollAmount);
+        
         return false; // スクロールを完全に無効化
     }, { passive: false, capture: true }); // キャプチャフェーズで処理
+    
+    // スクロールインジケーター表示関数
+    function showScrollIndicator(amount) {
+        if (!touchpadMiddle) return;
+        
+        // 中ボタンの背景色を変更
+        touchpadMiddle.style.background = 'linear-gradient(180deg, #a0d0ff 0%, #80b0ff 100%)';
+        scrollIndicator.classList.add('active');
+        
+        // 上下の矢印の表示を調整
+        const arrows = scrollIndicator.querySelectorAll('.arrow');
+        if (amount > 0) {
+            arrows[0].style.opacity = '1';
+            arrows[1].style.opacity = '0.3';
+        } else {
+            arrows[0].style.opacity = '0.3';
+            arrows[1].style.opacity = '1';
+        }
+        
+        // 一定時間後に非表示
+        clearTimeout(showScrollIndicator.timer);
+        showScrollIndicator.timer = setTimeout(() => {
+            scrollIndicator.classList.remove('active');
+            // 中ボタンの背景色を元に戻す
+            if (isMouseCaptureActive) {
+                touchpadMiddle.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
+            } else {
+                touchpadMiddle.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
+            }
+        }, 500);
+    }
     
     // タッチイベント（モバイル対応）
     

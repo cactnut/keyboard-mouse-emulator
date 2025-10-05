@@ -147,9 +147,23 @@
             
             <!-- タッチパッドエリア -->
             <div class="touchpad-section" style="margin-top: 20px;">
-                <div class="touchpad" id="touchpad" title="クリックしてマウスキャプチャモード開始"></div>
+                <div class="touchpad" id="touchpad">
+                    <div class="touchpad-area" id="touchpadArea" title="クリックしてマウスキャプチャモード開始">
+                    </div>
+                    <div class="touchpad-buttons">
+                        <div class="touchpad-button left" id="touchpadLeft">左クリック</div>
+                        <div class="touchpad-button middle" id="touchpadMiddle">
+                            中
+                            <div class="scroll-indicator" id="scrollIndicator">
+                                <div class="arrow up"></div>
+                                <div class="arrow down"></div>
+                            </div>
+                        </div>
+                        <div class="touchpad-button right" id="touchpadRight">右クリック</div>
+                    </div>
+                </div>
                 <div style="text-align: center; color: #888; font-size: 12px; margin-top: 5px;">
-                    クリックしてマウスキャプチャモード開始 | ESCキーで解除
+                    タッチパッドエリアをクリックしてマウスキャプチャモード開始 | 2本指でスクロール | ESCキーで解除
                 </div>
             </div>
         </div>
