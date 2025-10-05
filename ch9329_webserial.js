@@ -556,7 +556,11 @@ document.addEventListener('DOMContentLoaded', () => {
         touchpad.style.background = 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)';
         touchpad.style.border = '2px solid #ffd700';
         touchpad.innerHTML = '<div style="color: white; text-align: center; line-height: 150px; font-weight: bold;">🖱️ マウスキャプチャ中 (ESCで解除)</div>';
-        document.body.style.cursor = 'none';
+        
+        // Pointer Lock APIでマウスカーソルをロック
+        if (touchpad.requestPointerLock) {
+            touchpad.requestPointerLock();
+        }
         
         addGlobalLog('マウスキャプチャモード開始', 'info');
     }
@@ -567,7 +571,11 @@ document.addEventListener('DOMContentLoaded', () => {
         touchpad.style.background = 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%)';
         touchpad.style.border = '2px solid #555';
         touchpad.innerHTML = '';
-        document.body.style.cursor = 'auto';
+        
+        // Pointer Lockを解除
+        if (document.exitPointerLock) {
+            document.exitPointerLock();
+        }
         
         addGlobalLog('マウスキャプチャモード終了', 'info');
     }
@@ -582,6 +590,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // Pointer Lock状態の変更を監視
+    document.addEventListener('pointerlockchange', () => {
+        if (document.pointerLockElement === touchpad) {
+            // ポインターロックが成功
+            addGlobalLog('ポインターロック有効', 'debug');
+            
+            // スクロールイベントも無効化するためのリスナーを追加
+            window.addEventListener('scroll', preventScroll, { passive: false });
+            document.addEventListener('scroll', preventScroll, { passive: false });
+            document.body.addEventListener('scroll', preventScroll, { passive: false });
+        } else {
+            // ポインターロックが解除された
+            if (isMouseCaptureActive) {
+                disableMouseCapture();
+            }
+            
+            // スクロール無効化リスナーを削除
+            window.removeEventListener('scroll', preventScroll);
+            document.removeEventListener('scroll', preventScroll);
+            document.body.removeEventListener('scroll', preventScroll);
+        }
+    });
+    
+    // スクロールを防ぐヘルパー関数
+    function preventScroll(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }
+    
+    // Pointer Lockエラー時の処理
+    document.addEventListener('pointerlockerror', () => {
+        addGlobalLog('ポインターロックエラー', 'warning');
+    });
+    
     // グローバルマウスイベント（キャプチャモード時のみ動作）
     document.addEventListener('mousedown', (e) => {
         if (!controller.isConnected || !isMouseCaptureActive) return;
@@ -594,14 +637,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('mousemove', async (e) => {
         if (!controller.isConnected || !isMouseCaptureActive) return;
         e.preventDefault();
+        e.stopPropagation();
         
-        const deltaX = e.clientX - lastMouseX;
-        const deltaY = e.clientY - lastMouseY;
-        
-        if (Math.abs(deltaX) > 0 || Math.abs(deltaY) > 0) {
-            await controller.moveMouseRelative(deltaX, deltaY);
-            lastMouseX = e.clientX;
-            lastMouseY = e.clientY;
+        // Pointer Lock APIを使用している場合はmovementX/Yを使用
+        if (document.pointerLockElement === touchpad) {
+            const deltaX = e.movementX || 0;
+            const deltaY = e.movementY || 0;
+            
+            if (deltaX !== 0 || deltaY !== 0) {
+                await controller.moveMouseRelative(deltaX, deltaY);
+            }
+        } else {
+            // フォールバック: 従来の方法（ポインターロックが使えない場合）
+            const deltaX = e.clientX - lastMouseX;
+            const deltaY = e.clientY - lastMouseY;
+            
+            if (Math.abs(deltaX) > 0 || Math.abs(deltaY) > 0) {
+                await controller.moveMouseRelative(deltaX, deltaY);
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+            }
         }
     });
     
@@ -634,11 +689,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // ホイールスクロール（グローバル）
     document.addEventListener('wheel', async (e) => {
         if (!controller.isConnected || !isMouseCaptureActive) return;
+        
+        // マウスキャプチャモード中は全てのスクロールをキャプチャ
         e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
         
         const scrollAmount = Math.sign(e.deltaY) * -3; // スクロール方向を反転
         await controller.scrollMouse(scrollAmount);
-    });
+        
+        return false; // スクロールを完全に無効化
+    }, { passive: false, capture: true }); // キャプチャフェーズで処理
     
     // ESCキーでマウスキャプチャ解除
     document.addEventListener('keydown', (e) => {
