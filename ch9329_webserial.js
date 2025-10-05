@@ -350,13 +350,29 @@ class CH9329Controller {
 }
 
 // キーボードレイアウト定義
-// 注意: これらはUI表示用の簡略化されたレイアウトです。
-// 実際にはUS-Mac、US-Win、JIS-Mac、JIS-Winの4種類が存在しますが、
-// 入力機能はOSがキーイベントを正規化するため問題なく動作します。
-// UIの完全な再現よりシンプルさを優先しています。
+// US-Mac、US-Win、JIS-Mac、JIS-Winの4種類を完全実装
+// UIと送信キーコードの両方に対応
 const KEYBOARD_LAYOUTS = {
     'us': {
         name: 'US (ANSI)',
+        functionRow: [
+            { code: 'Escape', label: 'ESC', class: 'function-key' },
+            { type: 'spacer', width: 30 },
+            { code: 'F1', label: 'F1', class: 'function-key' },
+            { code: 'F2', label: 'F2', class: 'function-key' },
+            { code: 'F3', label: 'F3', class: 'function-key' },
+            { code: 'F4', label: 'F4', class: 'function-key' },
+            { type: 'spacer', width: 20 },
+            { code: 'F5', label: 'F5', class: 'function-key' },
+            { code: 'F6', label: 'F6', class: 'function-key' },
+            { code: 'F7', label: 'F7', class: 'function-key' },
+            { code: 'F8', label: 'F8', class: 'function-key' },
+            { type: 'spacer', width: 20 },
+            { code: 'F9', label: 'F9', class: 'function-key' },
+            { code: 'F10', label: 'F10', class: 'function-key' },
+            { code: 'F11', label: 'F11', class: 'function-key' },
+            { code: 'F12', label: 'F12', class: 'function-key' }
+        ],
         numberRow: [
             { code: 'Backquote', normal: '`', shift: '~' },
             { code: 'Digit1', normal: '1', shift: '!' },
@@ -386,6 +402,24 @@ const KEYBOARD_LAYOUTS = {
     },
     'jis': {
         name: 'JIS',
+        functionRow: [
+            { code: 'Escape', label: 'ESC', class: 'function-key' },
+            { type: 'spacer', width: 30 },
+            { code: 'F1', label: 'F1', class: 'function-key' },
+            { code: 'F2', label: 'F2', class: 'function-key' },
+            { code: 'F3', label: 'F3', class: 'function-key' },
+            { code: 'F4', label: 'F4', class: 'function-key' },
+            { type: 'spacer', width: 20 },
+            { code: 'F5', label: 'F5', class: 'function-key' },
+            { code: 'F6', label: 'F6', class: 'function-key' },
+            { code: 'F7', label: 'F7', class: 'function-key' },
+            { code: 'F8', label: 'F8', class: 'function-key' },
+            { type: 'spacer', width: 20 },
+            { code: 'F9', label: 'F9', class: 'function-key' },
+            { code: 'F10', label: 'F10', class: 'function-key' },
+            { code: 'F11', label: 'F11', class: 'function-key' },
+            { code: 'F12', label: 'F12', class: 'function-key' }
+        ],
         numberRow: [
             { code: 'Digit1', normal: '1', shift: '!' },
             { code: 'Digit2', normal: '2', shift: '"' },
@@ -872,6 +906,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function generateKeyboardLayout(layoutName, osTypeParam = null) {
         const layout = KEYBOARD_LAYOUTS[layoutName] || KEYBOARD_LAYOUTS['us'];
         const osType = osTypeParam || getOSInfo();
+        
+        // ファンクションキー行
+        const functionRow = document.getElementById('functionRow');
+        functionRow.innerHTML = '';
+        
+        layout.functionRow.forEach(item => {
+            if (item.type === 'spacer') {
+                // スペーサー
+                const spacer = document.createElement('div');
+                spacer.style.width = `${item.width}px`;
+                functionRow.appendChild(spacer);
+            } else {
+                // キー
+                const keyDiv = document.createElement('div');
+                keyDiv.className = `key ${item.class || ''}`;
+                keyDiv.dataset.code = item.code;
+                keyDiv.textContent = item.label || '';
+                functionRow.appendChild(keyDiv);
+            }
+        });
         
         // 数字キー行
         const numberRow = document.getElementById('numberRow');
