@@ -1,0 +1,373 @@
+/* CH9329 WebSerial Controller Styles */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.container {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+h1 {
+    color: #333;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+}
+
+.section {
+    margin: 25px 0;
+    padding: 20px;
+    background: #f7f7f7;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+}
+
+.section h2 {
+    color: #555;
+    margin-top: 0;
+    font-size: 1.3em;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 5px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+input[type="text"], textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus, textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+textarea {
+    min-height: 100px;
+    font-family: 'Courier New', monospace;
+    resize: vertical;
+}
+
+.status {
+    padding: 15px;
+    background: #f0f0f0;
+    border-radius: 5px;
+    margin: 10px 0;
+    border-left: 4px solid #667eea;
+}
+
+.status.connected {
+    background: #d4edda;
+    border-left-color: #28a745;
+    color: #155724;
+}
+
+.status.disconnected {
+    background: #f8d7da;
+    border-left-color: #dc3545;
+    color: #721c24;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.touchpad {
+    width: 500px;
+    height: 150px;
+    background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+    border: 2px solid #555;
+    border-radius: 8px;
+    margin: 20px auto;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    touch-action: none;
+    overflow: hidden;
+}
+
+.mouse-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.mouse-button {
+    width: 100px;
+    padding: 15px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.coordinates {
+    font-family: 'Courier New', monospace;
+    color: #666;
+    margin: 10px 0;
+}
+
+.media-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+select {
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+.log {
+    max-height: 200px;
+    overflow-y: auto;
+    background: #1e1e1e;
+    color: #0f0;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.log-entry {
+    margin: 2px 0;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+.warning {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 5px;
+    padding: 15px;
+    margin: 20px 0;
+    color: #856404;
+}
+
+.warning h3 {
+    margin-top: 0;
+    color: #856404;
+}
+
+input[type="number"] {
+    width: 80px;
+    padding: 5px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+input[type="range"] {
+    flex: 1;
+}
+
+.visual-keyboard {
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.keyboard-container {
+    display: flex;
+    gap: 20px;
+}
+
+.main-keyboard {
+    flex: 1;
+}
+
+.special-keys-area {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.keyboard-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+    justify-content: center;
+}
+
+.nav-key-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+}
+
+.arrow-key-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 5px;
+    justify-content: center;
+}
+
+.nav-keys-section {
+    margin-top: 0;
+}
+
+.arrow-keys-section {
+    margin-top: 0;
+}
+
+.key {
+    min-width: 40px;
+    height: 40px;
+    background: linear-gradient(180deg, #f0f0f0 0%, #d0d0d0 100%);
+    border: 1px solid #999;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    color: #333;
+    transition: all 0.1s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    user-select: none;
+    position: relative;
+}
+
+.key:hover {
+    background: linear-gradient(180deg, #fff 0%, #e0e0e0 100%);
+}
+
+.key:active, .key.pressed {
+    transform: translateY(2px);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.key.space {
+    min-width: 250px;
+}
+
+.key.backspace, .key.tab, .key.caps, .key.enter {
+    min-width: 70px;
+}
+
+.key.shift {
+    min-width: 90px;
+}
+
+.key.ctrl, .key.alt {
+    min-width: 50px;
+}
+
+.key.cmd {
+    min-width: 70px;
+    font-size: 11px;
+}
+
+.key.win {
+    min-width: 50px;
+}
+
+.key.menu {
+    min-width: 50px;
+    font-size: 11px;
+}
+
+.key-label {
+    font-size: 10px;
+}
+
+.function-key {
+    min-width: 35px;
+    height: 35px;
+    font-size: 10px;
+}
+
+.key.nav-key {
+    min-width: 45px;
+    height: 38px;
+    font-size: 11px;
+    background: linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 100%);
+}
+
+.key.arrow-key {
+    min-width: 40px;
+    height: 38px;
+    font-size: 16px;
+    background: linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 100%);
+}
+
+.key-history {
+    background: #1e1e1e;
+    color: #0f0;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    max-height: 100px;
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
