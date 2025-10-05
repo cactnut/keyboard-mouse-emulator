@@ -59,19 +59,7 @@
                 <button id="clearTextBtn">クリア</button>
             </div>
             
-            <div id="realtimeStatus" style="display: none; padding: 15px; background: #d4edda; border: 1px solid #28a745; border-radius: 5px; margin: 10px 0; text-align: center;">
-                <p style="margin: 0; font-weight: bold; color: #155724;">🎹 リアルタイムモード有効</p>
-                <p style="margin: 5px 0 0 0; color: #155724; font-size: 14px;">キーボード入力が直接送信されます</p>
-                <button id="exitRealtimeBtn" style="margin-top: 10px;">リアルタイムモードを終了</button>
-            </div>
-            
             <div class="visual-keyboard" id="visualKeyboard" title="クリックしてリアルタイムモードを有効化" style="cursor: pointer; position: relative;">
-                <div id="keyboardOverlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(102, 126, 234, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; z-index: 10; transition: opacity 0.3s;">
-                    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-                        <p style="margin: 0; font-size: 18px; color: #333;">🕹️ クリックしてリアルタイムモードを開始</p>
-                    </div>
-                </div>
-                
                 <!-- キーボードコンテナ -->
                 <div class="keyboard-container">
                     <!-- メインキーボードエリア -->
@@ -143,7 +131,8 @@
                     </div>
                 </div>
             </div>
-            
+            <p style="margin: 10px 0; font-size: 14px; color: #666;">キーボードエリアをクリックでリアルタイム送信開始、キーボード外クリックで終了</p>
+
             <!-- タッチパッドエリア -->
             <div class="touchpad-section" style="margin-top: 20px;">
                 <div class="touchpad" id="touchpad">

@@ -456,10 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const touchpadRight = document.getElementById('touchpadRight');
     const scrollIndicator = document.getElementById('scrollIndicator');
     const textInputContainer = document.getElementById('textInputContainer');
-    const realtimeStatus = document.getElementById('realtimeStatus');
-    const keyboardOverlay = document.getElementById('keyboardOverlay');
     const visualKeyboard = document.getElementById('visualKeyboard');
-    const exitRealtimeBtn = document.getElementById('exitRealtimeBtn');
     
     const sourceLayoutSelect = document.getElementById('sourceKeyboardLayout');
     const detectedLayoutSpan = document.getElementById('detectedLayout');
@@ -953,17 +950,20 @@ document.addEventListener('DOMContentLoaded', () => {
         enableRealtimeMode();
     });
     
-    // リアルタイムモード終了ボタン
-    exitRealtimeBtn.addEventListener('click', () => {
-        disableRealtimeMode();
+    // visual-keyboard枠外クリックでリアルタイムモード解除
+    document.addEventListener('click', (e) => {
+        if (!isRealtimeActive) return;
+        
+        // クリックがvisual-keyboardエリアの外側の場合
+        if (!visualKeyboard.contains(e.target)) {
+            disableRealtimeMode();
+        }
     });
     
     function enableRealtimeMode() {
         isRealtimeActive = true;
-        keyboardOverlay.style.display = 'none';
         visualKeyboard.style.cursor = 'default';
-        textInputContainer.style.display = 'none';
-        realtimeStatus.style.display = 'block';
+        // textInputContainerは無効にしない
         
         // キーボード背景を変更
         visualKeyboard.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
@@ -972,10 +972,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function disableRealtimeMode() {
         isRealtimeActive = false;
-        keyboardOverlay.style.display = 'flex';
         visualKeyboard.style.cursor = 'pointer';
-        textInputContainer.style.display = 'block';
-        realtimeStatus.style.display = 'none';
+        // textInputContainerは元々表示されているので何もしない
         
         // キーボード背景を元に戻す
         visualKeyboard.style.background = '#2a2a2a';
