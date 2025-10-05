@@ -7,8 +7,6 @@ class CH9329Controller {
         this.writer = null;
         this.reader = null;
         this.isConnected = false;
-        this.screenWidth = 1920;
-        this.screenHeight = 1080;
         this.sourceLayout = 'auto';  // UI表示用のキーボード配列（送信には影響しない）
         this.targetLayout = 'us';    // 被操作側PCのキーボード認識（送信キーコードを決定）
         
@@ -263,22 +261,7 @@ class CH9329Controller {
         await this.sendPacket(releasePacket);
     }
     
-    async moveMouseAbsolute(x, y) {
-        this.log(`マウス絶対移動: (${x}, ${y})`, 'info');
-        
-        // 座標を4096スケールに変換
-        const xAbs = Math.floor(4096 * x / this.screenWidth);
-        const yAbs = Math.floor(4096 * y / this.screenHeight);
-        
-        const packet = [
-            0x57, 0xAB, 0x00, 0x04, 0x07, 0x02, 0x00,
-            xAbs & 0xFF, (xAbs >> 8) & 0xFF,
-            yAbs & 0xFF, (yAbs >> 8) & 0xFF,
-            0x00
-        ];
-        packet.push(this.checksum(packet));
-        await this.sendPacket(packet);
-    }
+    // 絶対座標移動は削除（相対移動のみ使用）
     
     async moveMouseRelative(x, y) {
         // 範囲制限
@@ -443,8 +426,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusDiv = document.getElementById('status');
     const logDiv = document.getElementById('log');
     const baudRateSelect = document.getElementById('baudRate');
-    const screenWidthInput = document.getElementById('screenWidth');
-    const screenHeightInput = document.getElementById('screenHeight');
     
     // エミュレート側PCキーボードレイアウト選択
     const sourceLayoutSelect = document.getElementById('sourceKeyboardLayout');
@@ -500,9 +481,6 @@ document.addEventListener('DOMContentLoaded', () => {
     connectBtn.addEventListener('click', async () => {
         try {
             const baudRate = parseInt(baudRateSelect.value);
-            controller.screenWidth = parseInt(screenWidthInput.value);
-            controller.screenHeight = parseInt(screenHeightInput.value);
-            
             await controller.connect(baudRate);
             
             statusDiv.textContent = '接続済み';
@@ -511,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
             disconnectBtn.disabled = false;
             
             // 全ボタン有効化
-            document.querySelectorAll('.media-btn, .mouse-button, #sendTextBtn, #leftClickBtn, #rightClickBtn, #middleClickBtn, #moveRelBtn, #scrollBtn').forEach(btn => {
+            document.querySelectorAll('.media-btn, #sendTextBtn').forEach(btn => {
                 btn.disabled = false;
             });
             
@@ -532,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
         disconnectBtn.disabled = true;
         
         // 全ボタン無効化
-        document.querySelectorAll('.media-btn, .mouse-button, #sendTextBtn, #leftClickBtn, #rightClickBtn, #middleClickBtn, #moveRelBtn, #scrollBtn').forEach(btn => {
+        document.querySelectorAll('.media-btn, #sendTextBtn').forEach(btn => {
             btn.disabled = true;
         });
         
@@ -565,77 +543,178 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // マウスパッド
-    const mousePad = document.getElementById('mousePad');
-    const coordinates = document.getElementById('coordinates');
+    // タッチパッド/マウスキャプチャモード制御
+    const touchpad = document.getElementById('touchpad');
+    let isMouseCaptureActive = false;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let isDragging = false;
     
-    mousePad.addEventListener('click', async (e) => {
+    // マウスキャプチャモードの切り替え
+    function enableMouseCapture() {
+        isMouseCaptureActive = true;
+        touchpad.style.background = 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)';
+        touchpad.style.border = '2px solid #ffd700';
+        touchpad.innerHTML = '<div style="color: white; text-align: center; line-height: 150px; font-weight: bold;">🖱️ マウスキャプチャ中 (ESCで解除)</div>';
+        document.body.style.cursor = 'none';
+        
+        addGlobalLog('マウスキャプチャモード開始', 'info');
+    }
+    
+    function disableMouseCapture() {
+        isMouseCaptureActive = false;
+        isDragging = false;
+        touchpad.style.background = 'linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%)';
+        touchpad.style.border = '2px solid #555';
+        touchpad.innerHTML = '';
+        document.body.style.cursor = 'auto';
+        
+        addGlobalLog('マウスキャプチャモード終了', 'info');
+    }
+    
+    // タッチパッドクリックでマウスキャプチャ開始
+    touchpad.addEventListener('click', (e) => {
         if (!controller.isConnected) return;
+        if (!isMouseCaptureActive) {
+            e.preventDefault();
+            e.stopPropagation();
+            enableMouseCapture();
+        }
+    });
+    
+    // グローバルマウスイベント（キャプチャモード時のみ動作）
+    document.addEventListener('mousedown', (e) => {
+        if (!controller.isConnected || !isMouseCaptureActive) return;
+        e.preventDefault();
+        isDragging = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+    });
+    
+    document.addEventListener('mousemove', async (e) => {
+        if (!controller.isConnected || !isMouseCaptureActive) return;
+        e.preventDefault();
         
-        const rect = mousePad.getBoundingClientRect();
-        const x = Math.floor((e.clientX - rect.left) / rect.width * controller.screenWidth);
-        const y = Math.floor((e.clientY - rect.top) / rect.height * controller.screenHeight);
+        const deltaX = e.clientX - lastMouseX;
+        const deltaY = e.clientY - lastMouseY;
         
-        coordinates.textContent = `座標: (${x}, ${y})`;
-        await controller.moveMouseAbsolute(x, y);
+        if (Math.abs(deltaX) > 0 || Math.abs(deltaY) > 0) {
+            await controller.moveMouseRelative(deltaX, deltaY);
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        }
     });
     
-    // マウスボタン
-    document.getElementById('leftClickBtn').addEventListener('click', async () => {
-        await controller.clickMouse('LEFT');
-    });
-    
-    document.getElementById('rightClickBtn').addEventListener('click', async () => {
-        await controller.clickMouse('RIGHT');
-    });
-    
-    document.getElementById('middleClickBtn').addEventListener('click', async () => {
-        await controller.clickMouse('MIDDLE');
-    });
-    
-    // 相対移動スライダー
-    const relXSlider = document.getElementById('relX');
-    const relYSlider = document.getElementById('relY');
-    const relXValue = document.getElementById('relXValue');
-    const relYValue = document.getElementById('relYValue');
-    const moveRelBtn = document.getElementById('moveRelBtn');
-    
-    relXSlider.addEventListener('input', () => {
-        relXValue.textContent = relXSlider.value;
-    });
-    
-    relYSlider.addEventListener('input', () => {
-        relYValue.textContent = relYSlider.value;
-    });
-    
-    moveRelBtn.addEventListener('click', async () => {
-        const x = parseInt(relXSlider.value);
-        const y = parseInt(relYSlider.value);
-        await controller.moveMouseRelative(x, y);
+    document.addEventListener('mouseup', async (e) => {
+        if (!controller.isConnected || !isMouseCaptureActive) return;
+        e.preventDefault();
         
-        // スライダーリセット
-        relXSlider.value = 0;
-        relYSlider.value = 0;
-        relXValue.textContent = '0';
-        relYValue.textContent = '0';
-    });
-    
-    // スクロール
-    const scrollSlider = document.getElementById('scrollAmount');
-    const scrollValue = document.getElementById('scrollValue');
-    const scrollBtn = document.getElementById('scrollBtn');
-    
-    scrollSlider.addEventListener('input', () => {
-        scrollValue.textContent = scrollSlider.value;
-    });
-    
-    scrollBtn.addEventListener('click', async () => {
-        const amount = parseInt(scrollSlider.value);
-        await controller.scrollMouse(amount);
+        const wasDragging = isDragging;
+        isDragging = false;
         
-        // スライダーリセット
-        scrollSlider.value = 0;
-        scrollValue.textContent = '0';
+        // クリック判定（ドラッグしていない場合）
+        if (!wasDragging || (Math.abs(e.clientX - lastMouseX) < 3 && Math.abs(e.clientY - lastMouseY) < 3)) {
+            if (e.button === 0) {
+                await controller.clickMouse('LEFT');
+            } else if (e.button === 2) {
+                await controller.clickMouse('RIGHT');
+            } else if (e.button === 1) {
+                await controller.clickMouse('MIDDLE');
+            }
+        }
+    });
+    
+    // 右クリックメニューを無効化（キャプチャモード時）
+    document.addEventListener('contextmenu', (e) => {
+        if (isMouseCaptureActive) {
+            e.preventDefault();
+        }
+    });
+    
+    // ホイールスクロール（グローバル）
+    document.addEventListener('wheel', async (e) => {
+        if (!controller.isConnected || !isMouseCaptureActive) return;
+        e.preventDefault();
+        
+        const scrollAmount = Math.sign(e.deltaY) * -3; // スクロール方向を反転
+        await controller.scrollMouse(scrollAmount);
+    });
+    
+    // ESCキーでマウスキャプチャ解除
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && isMouseCaptureActive) {
+            disableMouseCapture();
+        }
+    });
+    
+    // タッチイベント（モバイル対応 - タッチパッドエリア内のみ）
+    let touchCount = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+    let lastTouchTime = 0;
+    
+    touchpad.addEventListener('touchstart', (e) => {
+        if (!controller.isConnected) return;
+        e.preventDefault();
+        
+        // マウスキャプチャモードを開始
+        if (!isMouseCaptureActive) {
+            enableMouseCapture();
+        }
+        
+        touchCount = e.touches.length;
+        if (touchCount === 1) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            lastTouchX = touchStartX;
+            lastTouchY = touchStartY;
+        }
+    });
+    
+    touchpad.addEventListener('touchmove', async (e) => {
+        if (!controller.isConnected || !isMouseCaptureActive) return;
+        e.preventDefault();
+        
+        if (touchCount === 1) {
+            // 1本指：マウス移動
+            const deltaX = e.touches[0].clientX - lastTouchX;
+            const deltaY = e.touches[0].clientY - lastTouchY;
+            
+            if (Math.abs(deltaX) > 0 || Math.abs(deltaY) > 0) {
+                await controller.moveMouseRelative(deltaX, deltaY);
+                lastTouchX = e.touches[0].clientX;
+                lastTouchY = e.touches[0].clientY;
+            }
+        } else if (touchCount === 2) {
+            // 2本指：スクロール
+            const deltaY = e.touches[0].clientY - lastTouchY;
+            if (Math.abs(deltaY) > 5) {
+                const scrollAmount = Math.sign(deltaY) * -2;
+                await controller.scrollMouse(scrollAmount);
+                lastTouchY = e.touches[0].clientY;
+            }
+        }
+    });
+    
+    touchpad.addEventListener('touchend', async (e) => {
+        if (!controller.isConnected || !isMouseCaptureActive) return;
+        e.preventDefault();
+        
+        const currentTime = Date.now();
+        const timeDiff = currentTime - lastTouchTime;
+        
+        if (touchCount === 1 && timeDiff < 300) {
+            // タップで左クリック
+            await controller.clickMouse('LEFT');
+        } else if (touchCount === 2 && timeDiff < 300) {
+            // 2本指タップで右クリック
+            await controller.clickMouse('RIGHT');
+        }
+        
+        lastTouchTime = currentTime;
+        touchCount = 0;
     });
     
     // ログ表示

@@ -104,21 +104,18 @@
             gap: 10px;
             margin: 15px 0;
         }
-        .mouse-pad {
-            width: 300px;
-            height: 200px;
-            background: #333;
-            border: 3px solid #667eea;
-            border-radius: 10px;
+        .touchpad {
+            width: 500px;
+            height: 150px;
+            background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid #555;
+            border-radius: 8px;
             margin: 20px auto;
             position: relative;
-            cursor: crosshair;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            font-size: 14px;
+            cursor: pointer;
             user-select: none;
+            touch-action: none;
+            overflow: hidden;
         }
         .mouse-buttons {
             display: flex;
@@ -344,10 +341,6 @@
                         <option value="115200">115200</option>
                     </select>
                 </label>
-                <label style="margin-left: 20px">画面サイズ: 
-                    <input type="number" id="screenWidth" value="1920" min="1"> x 
-                    <input type="number" id="screenHeight" value="1080" min="1">
-                </label>
             </div>
             <div style="margin-top: 10px;">
                 <label>キーボード表示（UI用）: 
@@ -484,38 +477,16 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- タッチパッドエリア -->
+            <div class="touchpad-section" style="margin-top: 20px;">
+                <div class="touchpad" id="touchpad" title="クリックしてマウスキャプチャモード開始"></div>
+                <div style="text-align: center; color: #888; font-size: 12px; margin-top: 5px;">
+                    クリックしてマウスキャプチャモード開始 | ESCキーで解除
+                </div>
+            </div>
         </div>
 
-        <div class="section">
-            <h2>🖱️ マウス操作</h2>
-            <div class="mouse-pad" id="mousePad">クリックして座標を送信</div>
-            <div class="coordinates" id="coordinates">座標: (-, -)</div>
-            
-            <div class="mouse-buttons">
-                <button class="mouse-button" id="leftClickBtn" disabled>左クリック</button>
-                <button class="mouse-button" id="rightClickBtn" disabled>右クリック</button>
-                <button class="mouse-button" id="middleClickBtn" disabled>中クリック</button>
-            </div>
-            
-            <div class="slider-container">
-                <label>相対移動 X: </label>
-                <input type="range" id="relX" min="-127" max="127" value="0">
-                <span id="relXValue">0</span>
-                <button id="moveRelBtn" disabled>相対移動</button>
-            </div>
-            <div class="slider-container">
-                <label>相対移動 Y: </label>
-                <input type="range" id="relY" min="-127" max="127" value="0">
-                <span id="relYValue">0</span>
-            </div>
-            
-            <div class="slider-container">
-                <label>スクロール: </label>
-                <input type="range" id="scrollAmount" min="-10" max="10" value="0">
-                <span id="scrollValue">0</span>
-                <button id="scrollBtn" disabled>スクロール</button>
-            </div>
-        </div>
 
         <div class="section">
             <h2>🎵 メディアキー</h2>
