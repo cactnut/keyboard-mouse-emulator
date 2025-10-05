@@ -1,6 +1,10 @@
 // CH9329 WebSerial Controller JavaScript
 // WebSerial APIを使用してブラウザからCH9329チップを制御
 
+// =====================================================
+// CH9329コントローラークラス
+// =====================================================
+
 class CH9329Controller {
     constructor() {
         this.port = null;
@@ -349,7 +353,9 @@ class CH9329Controller {
     }
 }
 
+// =====================================================
 // キーボードレイアウト定義
+// =====================================================
 // US-Mac、US-Win、JIS-Mac、JIS-Winの4種類を完全実装
 // UIと送信キーコードの両方に対応
 const KEYBOARD_LAYOUTS = {
@@ -449,24 +455,103 @@ const KEYBOARD_LAYOUTS = {
     }
 };
 
-// UIとの連携
+// =====================================================
+// メインアプリケーション
+// =====================================================
+
 document.addEventListener('DOMContentLoaded', () => {
     const controller = new CH9329Controller();
     let isRealtimeActive = false;
+    let isMouseCaptureActive = false;
     
-    // 要素取得
+    // =====================================================
+    // 初期化とグローバル変数
+    // =====================================================
+    
+    // UI要素の取得
     const connectBtn = document.getElementById('connectBtn');
     const disconnectBtn = document.getElementById('disconnectBtn');
     const statusDiv = document.getElementById('status');
     const logDiv = document.getElementById('log');
     const baudRateSelect = document.getElementById('baudRate');
+    const textInput = document.getElementById('textInput');
+    const sendTextBtn = document.getElementById('sendTextBtn');
+    const clearTextBtn = document.getElementById('clearTextBtn');
+    const touchpad = document.getElementById('touchpad');
+    const textInputContainer = document.getElementById('textInputContainer');
+    const realtimeStatus = document.getElementById('realtimeStatus');
+    const keyboardOverlay = document.getElementById('keyboardOverlay');
+    const visualKeyboard = document.getElementById('visualKeyboard');
+    const exitRealtimeBtn = document.getElementById('exitRealtimeBtn');
     
-    // エミュレート側PCキーボードレイアウト選択
     const sourceLayoutSelect = document.getElementById('sourceKeyboardLayout');
     const detectedLayoutSpan = document.getElementById('detectedLayout');
     const targetLayoutSelect = document.getElementById('targetKeyboardLayout');
     
-    // エミュレート側レイアウト自動検出と表示
+    // マウス制御用変数
+    let lastMouseX = 0;
+    let lastMouseY = 0;
+    let isDragging = false;
+    
+    // タッチ制御用変数
+    let touchCount = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+    let lastTouchTime = 0;
+    
+    // =====================================================
+    // デバイス接続管理
+    // =====================================================
+    
+    // デバイス接続処理
+    connectBtn.addEventListener('click', async () => {
+        try {
+            const baudRate = parseInt(baudRateSelect.value);
+            await controller.connect(baudRate);
+            
+            statusDiv.textContent = '接続済み';
+            statusDiv.className = 'status connected';
+            connectBtn.disabled = true;
+            disconnectBtn.disabled = false;
+            
+            // 全ボタン有効化
+            document.querySelectorAll('.media-btn, #sendTextBtn').forEach(btn => {
+                btn.disabled = false;
+            });
+            
+            // オーバーレイ表示（接続後はクリック可能に）
+            keyboardOverlay.style.display = 'flex';
+        } catch (error) {
+            alert(`接続エラー: ${error.message}`);
+        }
+    });
+    
+    // デバイス切断処理
+    disconnectBtn.addEventListener('click', async () => {
+        await controller.disconnect();
+        
+        statusDiv.textContent = '未接続';
+        statusDiv.className = 'status disconnected';
+        connectBtn.disabled = false;
+        disconnectBtn.disabled = true;
+        
+        // 全ボタン無効化
+        document.querySelectorAll('.media-btn, #sendTextBtn').forEach(btn => {
+            btn.disabled = true;
+        });
+        
+        // リアルタイムモード終了
+        disableRealtimeMode();
+        keyboardOverlay.style.display = 'flex';
+    });
+    
+    // =====================================================
+    // キーボード制御
+    // =====================================================
+    
+    // レイアウト設定
     function updateSourceLayout() {
         const value = sourceLayoutSelect.value;
         let layoutType, osType;
@@ -501,7 +586,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     sourceLayoutSelect.addEventListener('change', updateSourceLayout);
     
-    // 被操作側PCキーボードレイアウト選択
     targetLayoutSelect.addEventListener('change', () => {
         const layout = targetLayoutSelect.value;
         controller.setTargetLayout(layout);
@@ -511,52 +595,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSourceLayout();
     controller.setTargetLayout(targetLayoutSelect.value);
     
-    // 接続ボタン
-    connectBtn.addEventListener('click', async () => {
-        try {
-            const baudRate = parseInt(baudRateSelect.value);
-            await controller.connect(baudRate);
-            
-            statusDiv.textContent = '接続済み';
-            statusDiv.className = 'status connected';
-            connectBtn.disabled = true;
-            disconnectBtn.disabled = false;
-            
-            // 全ボタン有効化
-            document.querySelectorAll('.media-btn, #sendTextBtn').forEach(btn => {
-                btn.disabled = false;
-            });
-            
-            // オーバーレイ表示（接続後はクリック可能に）
-            keyboardOverlay.style.display = 'flex';
-        } catch (error) {
-            alert(`接続エラー: ${error.message}`);
-        }
-    });
-    
-    // 切断ボタン
-    disconnectBtn.addEventListener('click', async () => {
-        await controller.disconnect();
-        
-        statusDiv.textContent = '未接続';
-        statusDiv.className = 'status disconnected';
-        connectBtn.disabled = false;
-        disconnectBtn.disabled = true;
-        
-        // 全ボタン無効化
-        document.querySelectorAll('.media-btn, #sendTextBtn').forEach(btn => {
-            btn.disabled = true;
-        });
-        
-        // リアルタイムモード終了
-        disableRealtimeMode();
-        keyboardOverlay.style.display = 'flex';
-    });
-    
-    // テキスト送信
-    const textInput = document.getElementById('textInput');
-    const sendTextBtn = document.getElementById('sendTextBtn');
-    const clearTextBtn = document.getElementById('clearTextBtn');
+    // テキスト入力
     
     sendTextBtn.addEventListener('click', async () => {
         const text = textInput.value;
@@ -569,6 +608,13 @@ document.addEventListener('DOMContentLoaded', () => {
         textInput.value = '';
     });
     
+    // キーボードショートカット（Ctrl+Enterでテキスト送信）
+    textInput.addEventListener('keydown', async (e) => {
+        if (e.ctrlKey && e.key === 'Enter' && controller.isConnected) {
+            await controller.sendText(textInput.value);
+        }
+    });
+    
     // メディアキー
     document.querySelectorAll('.media-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
@@ -577,12 +623,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
     
-    // タッチパッド/マウスキャプチャモード制御
-    const touchpad = document.getElementById('touchpad');
-    let isMouseCaptureActive = false;
-    let lastMouseX = 0;
-    let lastMouseY = 0;
-    let isDragging = false;
+    // =====================================================
+    // マウス制御
+    // =====================================================
     
     // マウスキャプチャモードの切り替え
     function enableMouseCapture() {
@@ -735,20 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return false; // スクロールを完全に無効化
     }, { passive: false, capture: true }); // キャプチャフェーズで処理
     
-    // ESCキーでマウスキャプチャ解除
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && isMouseCaptureActive) {
-            disableMouseCapture();
-        }
-    });
-    
-    // タッチイベント（モバイル対応 - タッチパッドエリア内のみ）
-    let touchCount = 0;
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let lastTouchX = 0;
-    let lastTouchY = 0;
-    let lastTouchTime = 0;
+    // タッチイベント（モバイル対応）
     
     touchpad.addEventListener('touchstart', (e) => {
         if (!controller.isConnected) return;
@@ -812,41 +842,9 @@ document.addEventListener('DOMContentLoaded', () => {
         touchCount = 0;
     });
     
-    // ログ表示
-    window.addEventListener('ch9329-log', (e) => {
-        const { message, level, timestamp } = e.detail;
-        const logEntry = document.createElement('div');
-        logEntry.className = 'log-entry';
-        logEntry.textContent = `[${timestamp}] ${level.toUpperCase()}: ${message}`;
-        logDiv.appendChild(logEntry);
-        
-        // 自動スクロール
-        logDiv.scrollTop = logDiv.scrollHeight;
-        
-        // ログ数制限（最大100件）
-        while (logDiv.children.length > 100) {
-            logDiv.removeChild(logDiv.firstChild);
-        }
-    });
-    
-    // ログクリア
-    document.getElementById('clearLogBtn').addEventListener('click', () => {
-        logDiv.innerHTML = '';
-    });
-    
-    // キーボードショートカット（Ctrl+Enterでテキスト送信）
-    textInput.addEventListener('keydown', async (e) => {
-        if (e.ctrlKey && e.key === 'Enter' && controller.isConnected) {
-            await controller.sendText(textInput.value);
-        }
-    });
-    
-    // リアルタイムモード切替
-    const textInputContainer = document.getElementById('textInputContainer');
-    const realtimeStatus = document.getElementById('realtimeStatus');
-    const keyboardOverlay = document.getElementById('keyboardOverlay');
-    const visualKeyboard = document.getElementById('visualKeyboard');
-    const exitRealtimeBtn = document.getElementById('exitRealtimeBtn');
+    // =====================================================
+    // リアルタイムキーボードモード
+    // =====================================================
     
     // キーボードオーバーレイクリックでリアルタイムモード開始
     keyboardOverlay.addEventListener('click', () => {
@@ -887,7 +885,83 @@ document.addEventListener('DOMContentLoaded', () => {
         visualKeyboard.style.boxShadow = 'none';
     }
     
-    // OS判別ヘルパー関数
+    // 物理キーボードからの入力イベント処理
+    document.addEventListener('keydown', async (e) => {
+        // ESCキーでマウスキャプチャ解除
+        if (e.key === 'Escape' && isMouseCaptureActive) {
+            disableMouseCapture();
+            return;
+        }
+        
+        if (!isRealtimeActive || !controller.isConnected) return;
+        
+        // テキストエリアなどの入力要素がフォーカスされている場合はスキップ
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+        
+        // Escapeキーでリアルタイムモード終了
+        if (e.key === 'Escape' && isRealtimeActive) {
+            disableRealtimeMode();
+            return;
+        }
+        
+        // MacのCommand+BackspaceをWindowsのDeleteとして処理
+        if (e.metaKey && e.key === 'Backspace') {
+            e.preventDefault();
+            await controller.sendSpecialKey('DELETE');
+            return;
+        }
+        
+        e.preventDefault();
+        
+        // ビジュアルキーボードのキーをハイライト
+        const visualKey = document.querySelector(`.visual-keyboard .key[data-code="${e.code}"]`);
+        if (visualKey) {
+            visualKey.classList.add('pressed');
+        }
+        
+        // キー送信
+        await handleKeyPress(e.code, e.key);
+    });
+    
+    document.addEventListener('keyup', (e) => {
+        if (!isRealtimeActive) return;
+        
+        // ビジュアルキーボードのハイライト解除
+        const visualKey = document.querySelector(`.visual-keyboard .key[data-code="${e.code}"]`);
+        if (visualKey) {
+            setTimeout(() => visualKey.classList.remove('pressed'), 100);
+        }
+    });
+    
+    // =====================================================
+    // ログ管理
+    // =====================================================
+    
+    window.addEventListener('ch9329-log', (e) => {
+        const { message, level, timestamp } = e.detail;
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry';
+        logEntry.textContent = `[${timestamp}] ${level.toUpperCase()}: ${message}`;
+        logDiv.appendChild(logEntry);
+        
+        // 自動スクロール
+        logDiv.scrollTop = logDiv.scrollHeight;
+        
+        // ログ数制限（最大100件）
+        while (logDiv.children.length > 100) {
+            logDiv.removeChild(logDiv.firstChild);
+        }
+    });
+    
+    // ログクリア
+    document.getElementById('clearLogBtn').addEventListener('click', () => {
+        logDiv.innerHTML = '';
+    });
+    
+    // =====================================================
+    // ヘルパー関数とユーティリティ
+    // =====================================================
+    
     function getOSInfo() {
         const platform = navigator.platform.toLowerCase();
         const userAgent = navigator.userAgent.toLowerCase();
@@ -902,7 +976,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'windows'; // デフォルト
     }
     
-    // ビジュアルキーボード生成関数
+    // =====================================================
+    // ビジュアルキーボード生成
+    // =====================================================
+    
     function generateKeyboardLayout(layoutName, osTypeParam = null) {
         const layout = KEYBOARD_LAYOUTS[layoutName] || KEYBOARD_LAYOUTS['us'];
         const osType = osTypeParam || getOSInfo();
@@ -1166,7 +1243,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setupKeyboardEventListeners();
     }
     
-    // キーボードイベントリスナー設定
+    // =====================================================
+    // キーボードイベント処理
+    // =====================================================
+    
     function setupKeyboardEventListeners() {
         const visualKeys = document.querySelectorAll('.visual-keyboard .key');
         visualKeys.forEach(key => {
@@ -1192,7 +1272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     
-    // キー入力処理関数
+    // キー入力処理
     async function handleKeyPress(code, key, element = null) {
         if (!controller.isConnected) return;
         
@@ -1231,46 +1311,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    
-    // 物理キーボードイベント処理
-    document.addEventListener('keydown', async (e) => {
-        if (!isRealtimeActive || !controller.isConnected) return;
-        
-        // テキストエリアなどの入力要素がフォーカスされている場合はスキップ
-        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-        
-        // Escapeキーでリアルタイムモード終了
-        if (e.key === 'Escape' && isRealtimeActive) {
-            disableRealtimeMode();
-            return;
-        }
-        
-        // MacのCommand+BackspaceをWindowsのDeleteとして処理
-        if (e.metaKey && e.key === 'Backspace') {
-            e.preventDefault();
-            await controller.sendSpecialKey('DELETE');
-            return;
-        }
-        
-        e.preventDefault();
-        
-        // ビジュアルキーボードのキーをハイライト
-        const visualKey = document.querySelector(`.visual-keyboard .key[data-code="${e.code}"]`);
-        if (visualKey) {
-            visualKey.classList.add('pressed');
-        }
-        
-        // キー送信
-        await handleKeyPress(e.code, e.key);
-    });
-    
-    document.addEventListener('keyup', (e) => {
-        if (!isRealtimeActive) return;
-        
-        // ビジュアルキーボードのハイライト解除
-        const visualKey = document.querySelector(`.visual-keyboard .key[data-code="${e.code}"]`);
-        if (visualKey) {
-            setTimeout(() => visualKey.classList.remove('pressed'), 100);
-        }
-    });
 });
