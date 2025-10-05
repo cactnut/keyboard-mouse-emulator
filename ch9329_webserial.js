@@ -38,18 +38,6 @@ class CH9329Controller {
             RIGHT: 0x4F
         };
         
-        // メディアキー定義
-        this.MEDIA_KEYS = {
-            EJECT: [0x02, 0x80, 0x00, 0x00],
-            CDSTOP: [0x02, 0x40, 0x00, 0x00],
-            PREVTRACK: [0x02, 0x20, 0x00, 0x00],
-            NEXTTRACK: [0x02, 0x10, 0x00, 0x00],
-            PLAYPAUSE: [0x02, 0x08, 0x00, 0x00],
-            MUTE: [0x02, 0x04, 0x00, 0x00],
-            VOLUMEM: [0x02, 0x02, 0x00, 0x00],
-            VOLUMEP: [0x02, 0x01, 0x00, 0x00]
-        };
-        
         // マウスボタン定義
         this.MOUSE_BUTTONS = {
             LEFT: 0x01,
@@ -247,22 +235,6 @@ class CH9329Controller {
         } else {
             await this.pushKey(0x00, keyCode);
         }
-    }
-    
-    async sendMediaKey(keyName) {
-        const mediaData = this.MEDIA_KEYS[keyName];
-        if (!mediaData) return;
-        
-        this.log(`メディアキー: ${keyName}`, 'info');
-        
-        // メディアキー押下パケット
-        const packet = [0x57, 0xAB, 0x00, 0x03, 0x04, ...mediaData];
-        packet.push(this.checksum(packet));
-        await this.sendPacket(packet);
-        
-        // メディアキー離すパケット
-        const releasePacket = [0x57, 0xAB, 0x00, 0x03, 0x04, 0x02, 0x00, 0x00, 0x00, 0x0B];
-        await this.sendPacket(releasePacket);
     }
     
     // 絶対座標移動は削除（相対移動のみ使用）
@@ -516,10 +488,8 @@ document.addEventListener('DOMContentLoaded', () => {
             connectBtn.disabled = true;
             disconnectBtn.disabled = false;
             
-            // 全ボタン有効化
-            document.querySelectorAll('.media-btn, #sendTextBtn').forEach(btn => {
-                btn.disabled = false;
-            });
+            // テキスト送信ボタン有効化
+            sendTextBtn.disabled = false;
             
             // オーバーレイ表示（接続後はクリック可能に）
             keyboardOverlay.style.display = 'flex';
@@ -537,10 +507,8 @@ document.addEventListener('DOMContentLoaded', () => {
         connectBtn.disabled = false;
         disconnectBtn.disabled = true;
         
-        // 全ボタン無効化
-        document.querySelectorAll('.media-btn, #sendTextBtn').forEach(btn => {
-            btn.disabled = true;
-        });
+        // テキスト送信ボタン無効化
+        sendTextBtn.disabled = true;
         
         // リアルタイムモード終了
         disableRealtimeMode();
@@ -613,14 +581,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.ctrlKey && e.key === 'Enter' && controller.isConnected) {
             await controller.sendText(textInput.value);
         }
-    });
-    
-    // メディアキー
-    document.querySelectorAll('.media-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const key = btn.dataset.key;
-            await controller.sendMediaKey(key);
-        });
     });
     
     // =====================================================
