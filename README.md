@@ -5,6 +5,9 @@ Keyboard and mouse emulator program using CH340 and CH9329.   Emulates standard 
 
 This project is a keyboard and mouse emulator using CH340 (USB–UART bridge) and CH9329 (USB HID chip).
 
+Access the web interface here:
+https://cactnut.github.io/keyboard-mouse-emulator/
+
 ### System configuration
 
 PC1 ── CH340 ── CH9329 ── PC2
@@ -37,10 +40,10 @@ The web interface uses WebSerial API which requires a compatible browser:
 
 ### Usage
 
-1. Open `webserial_ch9329.html` in a supported browser
+1. Open https://cactnut.github.io/keyboard-mouse-emulator/ in a supported browser
 2. Click "接続" (Connect) button
 3. Select the serial port for CH9329 device
-4. Use the visual keyboard, mouse pad, and media controls
+4. Use the visual keyboard and mouse pad
 
 ### Features
 
@@ -52,13 +55,3 @@ The web interface uses WebSerial API which requires a compatible browser:
   - Absolute positioning via touchpad interface
   - Relative movement controls
   - Scroll wheel support
-- **Media Keys** for volume, playback control, etc.
-
-## Python Script
-
-For Python-based control, use `sample.py` with pyserial library:
-
-```bash
-pip install pyserial
-python3 sample.py
-```
