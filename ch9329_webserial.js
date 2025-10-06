@@ -598,8 +598,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (touchpadArea.requestPointerLock) {
             touchpadArea.requestPointerLock();
         }
-        
-        addGlobalLog('マウスキャプチャモード開始', 'info');
+
+        controller.log('マウスキャプチャモード開始', 'info');
     }
     
     function disableMouseCapture() {
@@ -617,8 +617,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (document.exitPointerLock) {
             document.exitPointerLock();
         }
-        
-        addGlobalLog('マウスキャプチャモード終了', 'info');
+
+        controller.log('マウスキャプチャモード終了', 'info');
     }
     
     // タッチパッドエリアクリックでマウスキャプチャ開始
