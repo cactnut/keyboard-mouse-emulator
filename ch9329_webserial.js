@@ -532,7 +532,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateSourceLayout() {
         const value = sourceLayoutSelect.value;
         let layoutType, osType;
-        
+        const eisuKanaOption = document.getElementById('eisuKanaOption');
+
         if (value === 'auto') {
             // 自動検出
             osType = getOSInfo();
@@ -544,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
             detectedLayoutSpan.textContent = '';
             const parts = value.split('-');
             layoutType = parts[0]; // 'us' or 'jis'
-            
+
             // 'win' を 'windows' に変換
             if (parts[1] === 'win') {
                 osType = 'windows';
@@ -553,11 +554,18 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 osType = getOSInfo();
             }
-            
+
             // controllerには配列タイプのみ設定
             controller.setSourceLayout(layoutType);
         }
-        
+
+        // JIS配列 Mac の場合のみ、英数/かなキー変換オプションを表示
+        if (layoutType === 'jis' && osType === 'mac') {
+            eisuKanaOption.style.display = 'inline';
+        } else {
+            eisuKanaOption.style.display = 'none';
+        }
+
         generateKeyboardLayout(layoutType, osType);
     }
     
@@ -1445,6 +1453,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!controller.isConnected) return;
 
         const { ctrlKey = false, shiftKey = false, altKey = false, metaKey = false } = modifiers;
+
+        // 英数/かなキー → 全角/半角キー変換（JIS Mac のみ）
+        const eisuKanaCheckbox = document.getElementById('eisuKanaToZenhan');
+        if (eisuKanaCheckbox && eisuKanaCheckbox.checked) {
+            if (code === 'Lang2' || code === 'Lang1') {
+                // 英数キー(Lang2) または かなキー(Lang1) → 全角/半角キー(0x35)を送信
+                await controller.sendSpecialKey('ZENHAN');
+                return;
+            }
+        }
 
         // 特殊キーの処理
         const specialKeys = {
