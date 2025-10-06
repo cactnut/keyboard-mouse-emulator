@@ -2,9 +2,8 @@
 
 :root {
     /* プライマリカラー（背景用） */
-    --primary-start: #57bf80;
-    --primary-end: #39925c;
-    
+    --primary: #57bf80;
+
     /* ボタン専用カラー */
     --button-start: #57bf80;
     --button-end: #39925c;
@@ -19,7 +18,11 @@
     /* ボーダー */
     --border-section: #e0e0e0;
     --border-input: #e0e0e0;
-    
+
+    /* 入力要素 */
+    --input-bg: white;
+    --input-text: #333;
+
     /* キーボードキー */
     --key-button-light: #f0f0f0;
     --key-button-dark: #d0d0d0;
@@ -48,9 +51,8 @@
 @media (prefers-color-scheme: dark) {
     :root {
         /* プライマリカラー（背景用） */
-        --primary-start: #2a4432;
-        --primary-end: #151b23;
-        
+        --primary: #2a4432;
+
         /* ボタン専用カラー */
         --button-start: #39925c;
         --button-end: #166240;
@@ -58,14 +60,18 @@
         
         /* 背景色 */
         --bg-main: #101010;
-        --bg-section: #16221b;
+        --bg-section: #2b2b2b;
         --bg-keyboard: #101010;
         --bg-log: #0a0a0a;
         
         /* ボーダー */
         --border-section: #5e625f;
         --border-input: #404040;
-        
+
+        /* 入力要素 */
+        --input-bg: #101010;
+        --input-text: #e8e8e8;
+
         /* キーボードキー */
         --key-button-light: #404040;
         --key-button-dark: #303030;
@@ -90,12 +96,16 @@
     }
 }
 
+html {
+    background: var(--primary);
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    background: linear-gradient(135deg, var(--primary-start) 0%, var(--primary-end) 100%);
+    background: var(--primary);
     min-height: 100vh;
 }
 
@@ -108,7 +118,7 @@ body {
 
 h1 {
     color: var(--text-primary);
-    border-bottom: 3px solid var(--primary-start);
+    border-bottom: 3px solid var(--primary);
     padding-bottom: 10px;
     margin-bottom: 30px;
 }
@@ -169,11 +179,13 @@ textarea {
     font-size: 14px;
     transition: border-color 0.3s;
     box-sizing: border-box;
+    background: var(--input-bg);
+    color: var(--input-text);
 }
 
 textarea:focus {
     outline: none;
-    border-color: var(--primary-start);
+    border-color: var(--primary);
 }
 
 textarea {
@@ -223,7 +235,7 @@ textarea {
     width: 100%;
     height: 140px;
     position: relative;
-    background: linear-gradient(180deg, var(--key-bg-light) 0%, var(--touchpad-bg-light) 100%);
+    background: linear-gradient(180deg, var(--key-button-light) 0%, var(--touchpad-bg-light) 100%);
     border-bottom: 1px solid var(--touchpad-border);
 }
 
@@ -268,11 +280,11 @@ textarea {
 }
 
 .touchpad-button:hover {
-    background: linear-gradient(180deg, var(--key-bg-light) 0%, var(--touchpad-bg-light) 100%);
+    background: linear-gradient(180deg, var(--key-button-light) 0%, var(--touchpad-bg-light) 100%);
 }
 
 .touchpad-button.active {
-    background: linear-gradient(180deg, var(--touchpad-bg-dark) 0%, var(--touchpad-border) 100%);
+    background: linear-gradient(135deg, var(--button-start) 0%, var(--button-end) 100%);
     box-shadow: inset 0 2px 4px var(--shadow);
     transform: translateY(1px);
 }
@@ -333,6 +345,8 @@ select {
     border-radius: 5px;
     font-size: 14px;
     margin: 5px 0;
+    background: var(--input-bg);
+    color: var(--input-text);
 }
 
 .log {
