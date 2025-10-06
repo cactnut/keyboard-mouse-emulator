@@ -12,8 +12,12 @@
 
         <div class="section">
             <h2>接続設定</h2>
-            <div class="status disconnected" id="status">未接続</div>
-            <div style="margin-top: 10px;">
+            <div style="margin-bottom: 10px;">
+                <button id="connectBtn">接続</button>
+                <button id="disconnectBtn" disabled>切断</button>
+                <span class="status-tag disconnected" id="status">未接続</span>
+            </div>
+            <div>
                 <label>キーボード表示（UI用）: 
                     <select id="sourceKeyboardLayout">
                         <option value="auto" selected>自動検出</option>
@@ -35,8 +39,6 @@
                 <span style="margin-left: 10px; color: #666; font-size: 12px;">
                 </span>
             </div>
-            <button id="connectBtn">接続</button>
-            <button id="disconnectBtn" disabled>切断</button>
         </div>
 
         <div class="section">

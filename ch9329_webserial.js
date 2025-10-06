@@ -485,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await controller.connect(BAUD_RATE);
             
             statusDiv.textContent = '接続済み';
-            statusDiv.className = 'status connected';
+            statusDiv.className = 'status-tag connected';
             connectBtn.disabled = true;
             disconnectBtn.disabled = false;
             
@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await controller.disconnect();
         
         statusDiv.textContent = '未接続';
-        statusDiv.className = 'status disconnected';
+        statusDiv.className = 'status-tag disconnected';
         connectBtn.disabled = false;
         disconnectBtn.disabled = true;
         
