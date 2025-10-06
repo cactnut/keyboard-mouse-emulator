@@ -623,7 +623,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // タッチパッドエリアクリックでマウスキャプチャ開始
     touchpadArea.addEventListener('click', (e) => {
-        if (!controller.isConnected) return;
+        if (!controller.isConnected) {
+            alert('先にデバイスを接続してください');
+            return;
+        }
         if (!isMouseCaptureActive) {
             e.preventDefault();
             e.stopPropagation();
