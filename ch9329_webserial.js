@@ -112,7 +112,7 @@ class CH9329Controller {
         }
     }
     
-    async connect(baudRate = 9600) {
+    async connect(baudRate = 115200) {
         try {
             // WebSerial APIサポート確認
             if (!('serial' in navigator)) {
@@ -445,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const disconnectBtn = document.getElementById('disconnectBtn');
     const statusDiv = document.getElementById('status');
     const logDiv = document.getElementById('log');
-    const baudRateSelect = document.getElementById('baudRate');
+    const BAUD_RATE = 115200; // ボーレートを指定
     const textInput = document.getElementById('textInput');
     const sendTextBtn = document.getElementById('sendTextBtn');
     const clearTextBtn = document.getElementById('clearTextBtn');
@@ -482,8 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // デバイス接続処理
     connectBtn.addEventListener('click', async () => {
         try {
-            const baudRate = parseInt(baudRateSelect.value);
-            await controller.connect(baudRate);
+            await controller.connect(BAUD_RATE);
             
             statusDiv.textContent = '接続済み';
             statusDiv.className = 'status connected';

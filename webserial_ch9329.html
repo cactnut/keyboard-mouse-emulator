@@ -8,22 +8,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>💻️ CH9329 WebSerial Controller</h1>
+        <h1>CH9329 WebSerial Controller</h1>
 
         <div class="section">
-            <h2>🔌 接続設定</h2>
+            <h2>接続設定</h2>
             <div class="status disconnected" id="status">未接続</div>
-            <div>
-                <label>ボーレート: 
-                    <select id="baudRate">
-                        <option value="9600" selected>9600</option>
-                        <option value="19200">19200</option>
-                        <option value="38400">38400</option>
-                        <option value="57600">57600</option>
-                        <option value="115200">115200</option>
-                    </select>
-                </label>
-            </div>
             <div style="margin-top: 10px;">
                 <label>キーボード表示（UI用）: 
                     <select id="sourceKeyboardLayout">
@@ -37,7 +26,7 @@
                 <span id="detectedLayout" style="margin-left: 10px; color: #667eea; font-size: 12px;"></span>
             </div>
             <div style="margin-top: 10px;">
-                <label>接続先機器のキーボード認識: 
+                <label>接続先機器のキーボード設定: 
                     <select id="targetKeyboardLayout">
                         <option value="us" selected>US配列</option>
                         <option value="jis">JIS配列</option>
@@ -51,7 +40,7 @@
         </div>
 
         <div class="section">
-            <h2>⌨️ キーボード入力</h2>
+            <h2>キーボード/マウス操作</h2>
             
             <div id="textInputContainer">
                 <textarea id="textInput" placeholder="送信するテキストを入力..."></textarea>
@@ -131,7 +120,7 @@
                     </div>
                 </div>
             </div>
-            <p style="margin: 10px 0; font-size: 14px; color: #666;">キーボードエリアをクリックでリアルタイム送信開始、キーボード外クリックで終了</p>
+            <p style="text-align: center; margin: 10px 0; font-size: 14px; color: #666;">キーボードエリアをクリックでリアルタイム送信開始 | キーボード外クリックで終了</p>
 
             <!-- タッチパッドエリア -->
             <div class="touchpad-section" style="margin-top: 20px;">
@@ -150,14 +139,14 @@
                         <div class="touchpad-button right" id="touchpadRight">右クリック</div>
                     </div>
                 </div>
-                <div style="text-align: center; color: #888; font-size: 12px; margin-top: 5px;">
+                <div style="text-align: center; margin: 10px 0; font-size: 14px; color: #666;">
                     タッチパッドエリアをクリックしてマウスキャプチャモード開始 | 2本指でスクロール | ESCキーで解除
                 </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>📋 ログ</h2>
+            <h2>ログ</h2>
             <button id="clearLogBtn">ログクリア</button>
             <div class="log" id="log"></div>
         </div>
