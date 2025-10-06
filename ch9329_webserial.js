@@ -491,9 +491,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // テキスト送信ボタン有効化
             sendTextBtn.disabled = false;
-            
-            // オーバーレイ表示（接続後はクリック可能に）
-            keyboardOverlay.style.display = 'flex';
         } catch (error) {
             alert(`接続エラー: ${error.message}`);
         }
@@ -513,7 +510,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // リアルタイムモード終了
         disableRealtimeMode();
-        keyboardOverlay.style.display = 'flex';
     });
     
     // =====================================================
@@ -939,8 +935,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // リアルタイムキーボードモード
     // =====================================================
     
-    // キーボードオーバーレイクリックでリアルタイムモード開始
-    keyboardOverlay.addEventListener('click', () => {
+    // ビジュアルキーボードクリックでリアルタイムモード開始
+    visualKeyboard.addEventListener('click', (e) => {
+        // キー自体がクリックされた場合は無視
+        if (e.target.classList.contains('key')) {
+            return;
+        }
+        
+        if (isRealtimeActive) {
+            return;
+        }
+        
         if (!controller.isConnected) {
             alert('先にデバイスを接続してください');
             return;
