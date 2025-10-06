@@ -2,34 +2,43 @@
 
 :root {
     /* プライマリカラー（背景用） */
-    --primary-start: #667eea;
-    --primary-end: #764ba2;
+    --primary-start: #57bf80;
+    --primary-end: #39925c;
     
     /* ボタン専用カラー */
-    --button-start: #667eea;
-    --button-end: #764ba2;
-    
+    --button-start: #57bf80;
+    --button-end: #39925c;
+    --button-disabled: #ccc;
+
     /* 背景色 */
     --bg-main: white;
     --bg-section: #f7f7f7;
-    --bg-dark: #2a2a2a;
+    --bg-keyboard: #79987e;
     --bg-log: #1e1e1e;
     
-    /* UI要素用カラー（ボーダー、キー、タッチパッド） */
-    --ui-lightest: #f0f0f0;
-    --ui-light: #e0e0e0;
-    --ui-medium: #d0d0d0;
-    --ui-dark: #999;
+    /* ボーダー */
+    --border-section: #e0e0e0;
+    --border-input: #e0e0e0;
+    
+    /* キーボードキー */
+    --key-button-light: #f0f0f0;
+    --key-button-dark: #d0d0d0;
+    --key-border: #999;
+    
+    /* タッチパッド */
+    --touchpad-bg-light: #e0e0e0;
+    --touchpad-bg-dark: #d0d0d0;
+    --touchpad-border: #999;
     
     /* テキスト */
     --text-primary: #333;
     --text-secondary: #555;
-    --text-muted: #666;
+    --text-muted: #717171;
     
     /* アクセントカラー */
     --accent-error: #dc3545;
-    --accent-scroll: #4a90e2;
-    
+    --accent-scroll: #4ae25c;
+
     /* その他 */
     --log-text: #0f0;
     --shadow: rgba(0,0,0,0.2);
@@ -43,30 +52,39 @@
         --primary-end: #151b23;
         
         /* ボタン専用カラー */
-        --button-start: #45a76c;
-        --button-end: #0e4746;
+        --button-start: #39925c;
+        --button-end: #166240;
+        --button-disabled: #4a4a4a;
         
         /* 背景色 */
-        --bg-main: #0d1117;
-        --bg-section: #383838;
-        --bg-dark: #1a1a1a;
+        --bg-main: #101010;
+        --bg-section: #16221b;
+        --bg-keyboard: #101010;
         --bg-log: #0a0a0a;
         
-        /* UI要素用カラー（ボーダー、キー、タッチパッド） */
-        --ui-lightest: #3a3a3a;
-        --ui-light: #404040;
-        --ui-medium: #303030;
-        --ui-dark: #606060;
+        /* ボーダー */
+        --border-section: #5e625f;
+        --border-input: #404040;
+        
+        /* キーボードキー */
+        --key-button-light: #404040;
+        --key-button-dark: #303030;
+        --key-border: #606060;
+        
+        /* タッチパッド */
+        --touchpad-bg-light: #404040;
+        --touchpad-bg-dark: #303030;
+        --touchpad-border: #606060;
         
         /* テキスト */
-        --text-primary: #f0f0f0;
-        --text-secondary: #d0d0d0;
-        --text-muted: #a0a0a0;
+        --text-primary: #e8e8e8;
+        --text-secondary: #dddddd;
+        --text-muted: #b8b8b8;
         
         /* アクセントカラー */
         --accent-error: #ef4444;
-        --accent-scroll: #6366f1;
-        
+        --accent-scroll: #4ae25c;
+
         /* その他 */
         --log-text: #10b981;
     }
@@ -95,12 +113,16 @@ h1 {
     margin-bottom: 30px;
 }
 
+label {
+    color: var(--text-muted);
+}
+
 .section {
     margin: 25px 0;
     padding: 20px;
     background: var(--bg-section);
     border-radius: 10px;
-    border: 1px solid var(--ui-light);
+    border: 1px solid var(--border-section);
 }
 
 .section h2 {
@@ -117,7 +139,7 @@ button {
     color: white;
     border: none;
     padding: 12px 25px;
-    border-radius: 5px;
+    border-radius: 32px;
     cursor: pointer;
     font-size: 16px;
     margin: 5px;
@@ -130,7 +152,7 @@ button:hover {
 }
 
 button:disabled {
-    background: #ccc;
+    background: var(--button-disabled);
     cursor: not-allowed;
     transform: none;
 }
@@ -142,7 +164,7 @@ button:active:not(:disabled) {
 textarea {
     width: 100%;
     padding: 10px;
-    border: 2px solid var(--ui-light);
+    border: 2px solid var(--border-input);
     border-radius: 5px;
     font-size: 14px;
     transition: border-color 0.3s;
@@ -163,7 +185,7 @@ textarea {
 .status-tag {
     display: inline-block;
     padding: 5px 12px;
-    border-radius: 16px;
+    border-radius: 6px;
     font-size: 16px;
     font-weight: bold;
     margin-left: 10px;
@@ -174,21 +196,19 @@ textarea {
 .status-tag.connected {
     background: var(--button-start);
     color: white;
-    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
 }
 
 .status-tag.disconnected {
     background: var(--accent-error);
     color: white;
-    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
 }
 
 
 .touchpad {
     width: 360px;
     height: 200px;
-    background: linear-gradient(180deg, var(--ui-light) 0%, var(--ui-medium) 100%);
-    border: 1px solid var(--ui-dark);
+    background: linear-gradient(180deg, var(--touchpad-bg-light) 0%, var(--touchpad-bg-dark) 100%);
+    border: 1px solid var(--touchpad-border);
     border-radius: 8px;
     margin: 20px auto;
     position: relative;
@@ -203,8 +223,8 @@ textarea {
     width: 100%;
     height: 140px;
     position: relative;
-    background: linear-gradient(180deg, var(--ui-lightest) 0%, var(--ui-light) 100%);
-    border-bottom: 1px solid var(--ui-dark);
+    background: linear-gradient(180deg, var(--key-bg-light) 0%, var(--touchpad-bg-light) 100%);
+    border-bottom: 1px solid var(--touchpad-border);
 }
 
 .touchpad-area.scrolling {
@@ -219,7 +239,7 @@ textarea {
 
 .touchpad-button {
     flex: 1;
-    background: linear-gradient(180deg, var(--ui-light) 0%, var(--ui-medium) 100%);
+    background: linear-gradient(180deg, var(--touchpad-bg-light) 0%, var(--touchpad-bg-dark) 100%);
     border: none;
     position: relative;
     cursor: pointer;
@@ -233,13 +253,13 @@ textarea {
 }
 
 .touchpad-button.left {
-    border-right: 1px solid var(--ui-dark);
+    border-right: 1px solid var(--touchpad-border);
     border-bottom-left-radius: 7px;
 }
 
 .touchpad-button.middle {
     flex: 0.3;
-    border-right: 1px solid var(--ui-dark);
+    border-right: 1px solid var(--touchpad-border);
     position: relative;
 }
 
@@ -248,11 +268,11 @@ textarea {
 }
 
 .touchpad-button:hover {
-    background: linear-gradient(180deg, var(--ui-lightest) 0%, var(--ui-light) 100%);
+    background: linear-gradient(180deg, var(--key-bg-light) 0%, var(--touchpad-bg-light) 100%);
 }
 
 .touchpad-button.active {
-    background: linear-gradient(180deg, #b0b0b0 0%, #909090 100%);
+    background: linear-gradient(180deg, var(--touchpad-bg-dark) 0%, var(--touchpad-border) 100%);
     box-shadow: inset 0 2px 4px var(--shadow);
     transform: translateY(1px);
 }
@@ -309,7 +329,7 @@ textarea {
 
 select {
     padding: 10px;
-    border: 2px solid var(--ui-light);
+    border: 2px solid var(--border-input);
     border-radius: 5px;
     font-size: 14px;
     margin: 5px 0;
@@ -341,7 +361,7 @@ select {
 
 
 .visual-keyboard {
-    background: var(--bg-dark);
+    background: var(--bg-keyboard);
     padding: 20px;
     border-radius: 10px;
     margin-top: 20px;
@@ -393,8 +413,8 @@ select {
 .key {
     min-width: 40px;
     height: 40px;
-    background: linear-gradient(180deg, var(--ui-lightest) 0%, var(--ui-medium) 100%);
-    border: 1px solid var(--ui-dark);
+    background: linear-gradient(180deg, var(--key-button-light) 0%, var(--key-button-dark) 100%);
+    border: 1px solid var(--key-border);
     border-radius: 4px;
     display: flex;
     align-items: center;
@@ -410,7 +430,8 @@ select {
 }
 
 .key:hover {
-    background: linear-gradient(180deg, white 0%, var(--ui-light) 100%);
+    background: linear-gradient(180deg, var(--key-button-light) 0%, var(--touchpad-bg-light) 100%);
+    filter: brightness(1.1);
 }
 
 .key:active, .key.pressed {
@@ -458,16 +479,11 @@ select {
 
 .key.nav-key {
     min-width: 45px;
-    height: 38px;
     font-size: 11px;
-    background: linear-gradient(180deg, var(--ui-light) 0%, #c0c0c0 100%);
 }
 
 .key.arrow-key {
-    min-width: 40px;
-    height: 38px;
     font-size: 16px;
-    background: linear-gradient(180deg, var(--ui-light) 0%, #c0c0c0 100%);
 }
 
 
