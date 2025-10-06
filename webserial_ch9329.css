@@ -401,6 +401,10 @@ select {
     margin-top: 20px;
 }
 
+.visual-keyboard.realtime-active {
+    background: var(--primary);
+}
+
 .keyboard-container {
     display: flex;
     gap: 20px;

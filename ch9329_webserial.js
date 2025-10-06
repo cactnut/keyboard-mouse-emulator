@@ -948,20 +948,18 @@ document.addEventListener('DOMContentLoaded', () => {
         isRealtimeActive = true;
         visualKeyboard.style.cursor = 'default';
         // textInputContainerは無効にしない
-        
+
         // キーボード背景を変更
-        visualKeyboard.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        visualKeyboard.style.boxShadow = '0 0 20px rgba(102, 126, 234, 0.5)';
+        visualKeyboard.classList.add('realtime-active');
     }
     
     function disableRealtimeMode() {
         isRealtimeActive = false;
         visualKeyboard.style.cursor = 'pointer';
         // textInputContainerは元々表示されているので何もしない
-        
+
         // キーボード背景を元に戻す
-        visualKeyboard.style.background = '#2a2a2a';
-        visualKeyboard.style.boxShadow = 'none';
+        visualKeyboard.classList.remove('realtime-active');
     }
     
     // 物理キーボードからの入力イベント処理
