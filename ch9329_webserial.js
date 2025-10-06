@@ -12,7 +12,7 @@ class CH9329Controller {
         this.reader = null;
         this.isConnected = false;
         this.sourceLayout = 'auto';  // UI表示用のキーボード配列（送信には影響しない）
-        this.targetLayout = 'jis';    // 被操作側PCのキーボード認識（送信キーコードを決定）
+        this.targetLayout = null;    // 被操作側PCのキーボード認識（送信キーコードを決定）HTMLから読み込む
         
         // キーコード定義
         this.SPECIAL_KEYS = {
