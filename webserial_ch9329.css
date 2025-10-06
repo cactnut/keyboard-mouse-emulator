@@ -32,7 +32,9 @@
     --touchpad-bg-light: #e0e0e0;
     --touchpad-bg-dark: #d0d0d0;
     --touchpad-border: #999;
-    
+    --touchpad-scrolling-light: #8ab58e;
+    --touchpad-scrolling-dark: #4f704e;
+
     /* テキスト */
     --text-primary: #333;
     --text-secondary: #555;
@@ -81,7 +83,9 @@
         --touchpad-bg-light: #404040;
         --touchpad-bg-dark: #303030;
         --touchpad-border: #606060;
-        
+        --touchpad-scrolling-light: #2a4a3a;
+        --touchpad-scrolling-dark: #1a3a2a;
+
         /* テキスト */
         --text-primary: #e8e8e8;
         --text-secondary: #dddddd;
@@ -240,7 +244,11 @@ textarea {
 }
 
 .touchpad-area.scrolling {
-    background: linear-gradient(180deg, #d0e8ff 0%, #a0c8ff 100%);
+    background: linear-gradient(180deg, var(--touchpad-scrolling-light) 0%, var(--touchpad-scrolling-dark) 100%);
+}
+
+.touchpad-area.capture-active {
+    background: linear-gradient(180deg, var(--touchpad-scrolling-light) 0%, var(--touchpad-scrolling-dark) 100%);
 }
 
 .touchpad-buttons {
@@ -287,6 +295,18 @@ textarea {
     background: linear-gradient(135deg, var(--button-start) 0%, var(--button-end) 100%);
     box-shadow: inset 0 2px 4px var(--shadow);
     transform: translateY(1px);
+}
+
+.touchpad-button.capture-active {
+    background: linear-gradient(180deg, var(--touchpad-scrolling-light) 0%, var(--touchpad-scrolling-dark) 100%);
+}
+
+.touchpad-button.click-feedback {
+    background: linear-gradient(135deg, var(--button-start) 0%, var(--button-end) 100%);
+}
+
+.touchpad-button.scrolling {
+    background: linear-gradient(180deg, var(--touchpad-scrolling-light) 0%, var(--touchpad-scrolling-dark) 100%);
 }
 
 .scroll-indicator {

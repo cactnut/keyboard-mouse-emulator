@@ -587,12 +587,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // マウスキャプチャモードの切り替え
     function enableMouseCapture() {
         isMouseCaptureActive = true;
-        
-        // UIフィードバック - タッチパッド全体の背景色を変更
-        touchpadArea.style.background = 'linear-gradient(180deg, #d0e0ff 0%, #b0d0ff 100%)';
-        touchpadLeft.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
-        touchpadMiddle.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
-        touchpadRight.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
+
+        // UIフィードバック - タッチパッド全体にアクティブクラスを追加
+        touchpadArea.classList.add('capture-active');
+        touchpadLeft.classList.add('capture-active');
+        touchpadMiddle.classList.add('capture-active');
+        touchpadRight.classList.add('capture-active');
         
         // Pointer Lock APIでマウスカーソルをロック
         if (touchpadArea.requestPointerLock) {
@@ -605,12 +605,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function disableMouseCapture() {
         isMouseCaptureActive = false;
         isDragging = false;
-        
+
         // UIを元に戻す
-        touchpadArea.style.background = 'linear-gradient(180deg, #f5f5f5 0%, #e0e0e0 100%)';
-        touchpadLeft.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
-        touchpadMiddle.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
-        touchpadRight.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
+        touchpadArea.classList.remove('capture-active');
+        touchpadLeft.classList.remove('capture-active');
+        touchpadMiddle.classList.remove('capture-active');
+        touchpadRight.classList.remove('capture-active');
         scrollIndicator.classList.remove('active');
         
         // Pointer Lockを解除
@@ -648,13 +648,9 @@ document.addEventListener('DOMContentLoaded', () => {
         await controller.clickMouse('LEFT');
         
         // クリックフィードバック
-        touchpadLeft.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+        touchpadLeft.classList.add('click-feedback');
         setTimeout(() => {
-            if (isMouseCaptureActive) {
-                touchpadLeft.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
-            } else {
-                touchpadLeft.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
-            }
+            touchpadLeft.classList.remove('click-feedback');
         }, 200);
     });
     
@@ -671,13 +667,9 @@ document.addEventListener('DOMContentLoaded', () => {
         await controller.clickMouse('MIDDLE');
         
         // クリックフィードバック
-        touchpadMiddle.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+        touchpadMiddle.classList.add('click-feedback');
         setTimeout(() => {
-            if (isMouseCaptureActive) {
-                touchpadMiddle.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
-            } else {
-                touchpadMiddle.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
-            }
+            touchpadMiddle.classList.remove('click-feedback');
         }, 200);
     });
     
@@ -694,13 +686,9 @@ document.addEventListener('DOMContentLoaded', () => {
         await controller.clickMouse('RIGHT');
         
         // クリックフィードバック
-        touchpadRight.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+        touchpadRight.classList.add('click-feedback');
         setTimeout(() => {
-            if (isMouseCaptureActive) {
-                touchpadRight.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
-            } else {
-                touchpadRight.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
-            }
+            touchpadRight.classList.remove('click-feedback');
         }, 200);
     });
     
@@ -786,29 +774,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.button === 0) {
                 await controller.clickMouse('LEFT');
                 // UIフィードバック
-                touchpadLeft.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+                touchpadLeft.classList.add('click-feedback');
                 setTimeout(() => {
-                    if (isMouseCaptureActive) {
-                        touchpadLeft.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
-                    }
+                    touchpadLeft.classList.remove('click-feedback');
                 }, 200);
             } else if (e.button === 2) {
                 await controller.clickMouse('RIGHT');
                 // UIフィードバック
-                touchpadRight.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+                touchpadRight.classList.add('click-feedback');
                 setTimeout(() => {
-                    if (isMouseCaptureActive) {
-                        touchpadRight.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
-                    }
+                    touchpadRight.classList.remove('click-feedback');
                 }, 200);
             } else if (e.button === 1) {
                 await controller.clickMouse('MIDDLE');
                 // UIフィードバック
-                touchpadMiddle.style.background = 'linear-gradient(180deg, #90ff90 0%, #70dd70 100%)';
+                touchpadMiddle.classList.add('click-feedback');
                 setTimeout(() => {
-                    if (isMouseCaptureActive) {
-                        touchpadMiddle.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
-                    }
+                    touchpadMiddle.classList.remove('click-feedback');
                 }, 200);
             }
         }
@@ -842,11 +824,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // スクロールインジケーター表示関数
     function showScrollIndicator(amount) {
         if (!touchpadMiddle) return;
-        
-        // 中ボタンの背景色を変更
-        touchpadMiddle.style.background = 'linear-gradient(180deg, #a0d0ff 0%, #80b0ff 100%)';
+
+        // 中ボタンにスクロール状態を追加
+        touchpadMiddle.classList.add('scrolling');
         scrollIndicator.classList.add('active');
-        
+
         // 上下の矢印の表示を調整
         const arrows = scrollIndicator.querySelectorAll('.arrow');
         if (amount > 0) {
@@ -856,17 +838,12 @@ document.addEventListener('DOMContentLoaded', () => {
             arrows[0].style.opacity = '0.3';
             arrows[1].style.opacity = '1';
         }
-        
+
         // 一定時間後に非表示
         clearTimeout(showScrollIndicator.timer);
         showScrollIndicator.timer = setTimeout(() => {
             scrollIndicator.classList.remove('active');
-            // 中ボタンの背景色を元に戻す
-            if (isMouseCaptureActive) {
-                touchpadMiddle.style.background = 'linear-gradient(180deg, #b0d0ff 0%, #90b0ff 100%)';
-            } else {
-                touchpadMiddle.style.background = 'linear-gradient(180deg, #e0e0e0 0%, #c0c0c0 100%)';
-            }
+            touchpadMiddle.classList.remove('scrolling');
         }, 500);
     }
     
