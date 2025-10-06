@@ -984,16 +984,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (!isRealtimeActive || !controller.isConnected) return;
-        
+
         // テキストエリアなどの入力要素がフォーカスされている場合はスキップ
         if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
-        
-        // Escapeキーでリアルタイムモード終了
-        if (e.key === 'Escape' && isRealtimeActive) {
-            disableRealtimeMode();
-            return;
-        }
-        
+
         // MacのCommand+BackspaceをWindowsのDeleteとして処理
         if (e.metaKey && e.key === 'Backspace') {
             e.preventDefault();
