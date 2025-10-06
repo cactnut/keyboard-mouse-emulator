@@ -937,9 +937,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // visual-keyboard枠外クリックでリアルタイムモード解除
     document.addEventListener('click', (e) => {
         if (!isRealtimeActive) return;
-        
-        // クリックがvisual-keyboardエリアの外側の場合
-        if (!visualKeyboard.contains(e.target)) {
+
+        // クリックがvisual-keyboardエリアまたはタッチパッドエリアの外側の場合
+        if (!visualKeyboard.contains(e.target) && !touchpad.contains(e.target)) {
             disableRealtimeMode();
         }
     });
