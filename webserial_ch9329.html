@@ -55,67 +55,40 @@
                     <div class="main-keyboard">
                         <!-- ファンクションキー行 -->
                         <div class="keyboard-row" id="functionRow">
-                            <!-- 動的に生成 -->
                         </div>
-                        
                         <!-- 数字キー行 -->
                         <div class="keyboard-row" id="numberRow">
-                            <!-- 動的に生成 -->
                         </div>
-                        
                         <!-- QWERTY行 -->
                         <div class="keyboard-row" id="qwertyRow">
-                            <!-- 動的に生成 -->
                         </div>
-                        
                         <!-- ASDF行 -->
                         <div class="keyboard-row" id="asdfRow">
-                            <!-- 動的に生成 -->
                         </div>
-                        
                         <!-- ZXCV行 -->
                         <div class="keyboard-row" id="zxcvRow">
-                            <!-- 動的に生成 -->
                         </div>
-                        
                         <!-- スペースバー行 -->
                         <div class="keyboard-row" id="spaceRow">
-                            <!-- 動的に生成 -->
                         </div>
                     </div>
                     
                     <!-- 特殊キーエリア（右側） -->
                     <div class="special-keys-area">
                         <!-- 上部：ナビゲーションキー -->
-                        <div class="nav-keys-section">
-                            <div class="nav-key-row">
-                                <div class="key nav-key" data-code="PrintScreen">PrtSc</div>
-                                <div class="key nav-key" data-code="ScrollLock">Scroll</div>
-                                <div class="key nav-key" data-code="Pause">Pause</div>
-                            </div>
-                            <div style="height: 10px;"></div>
-                            <div class="nav-key-row">
-                                <div class="key nav-key" data-code="Insert">Ins</div>
-                                <div class="key nav-key" data-code="Home">Home</div>
-                                <div class="key nav-key" data-code="PageUp">PgUp</div>
-                            </div>
-                            <div class="nav-key-row">
-                                <div class="key nav-key" data-code="Delete">Del</div>
-                                <div class="key nav-key" data-code="End">End</div>
-                                <div class="key nav-key" data-code="PageDown">PgDn</div>
-                            </div>
+                        <div class="keyboard-row" id="navRow1">
                         </div>
-                        
+                        <div style="height: 10px;"></div>
+                        <div class="keyboard-row" id="navRow2">
+                        </div>
+                        <div class="keyboard-row" id="navRow3">
+                        </div>
+
+                        <div style="height: 32px;"></div>
                         <!-- 下部：矢印キー -->
-                        <div class="arrow-keys-section">
-                            <div class="arrow-key-row">
-                                <div class="key arrow-key" data-code="ArrowUp">↑</div>
-                            </div>
-                            <div class="arrow-key-row">
-                                <div class="key arrow-key" data-code="ArrowLeft">←</div>
-                                <div class="key arrow-key" data-code="ArrowDown">↓</div>
-                                <div class="key arrow-key" data-code="ArrowRight">→</div>
-                            </div>
+                        <div class="keyboard-row" id="arrowRow1">
+                        </div>
+                        <div class="keyboard-row" id="arrowRow2">
                         </div>
                     </div>
                 </div>
@@ -130,8 +103,7 @@
                     <div class="touchpad-buttons">
                         <div class="touchpad-button left" id="touchpadLeft">左クリック</div>
                         <div class="touchpad-button middle" id="touchpadMiddle">
-                            中
-                            <div class="scroll-indicator" id="scrollIndicator">
+                            <div class="scroll-arrows">
                                 <div class="arrow up"></div>
                                 <div class="arrow down"></div>
                             </div>

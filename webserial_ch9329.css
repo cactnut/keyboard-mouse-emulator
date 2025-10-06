@@ -309,53 +309,42 @@ textarea {
     background: linear-gradient(180deg, var(--touchpad-scrolling-light) 0%, var(--touchpad-scrolling-dark) 100%);
 }
 
-.scroll-indicator {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 30px;
-    height: 40px;
-    border: 2px solid var(--accent-scroll);
-    border-radius: 4px;
-    background: var(--accent-scroll);
-    opacity: 0.3;
-    display: none;
+.scroll-arrows {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
     pointer-events: none;
-    animation: pulse 0.5s ease-in-out;
-    z-index: 100;
 }
 
-.scroll-indicator.active {
-    display: block;
-}
-
-.scroll-indicator .arrow {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+.scroll-arrows .arrow {
     width: 0;
     height: 0;
+    opacity: 0.4;
+    transition: opacity 0.2s;
 }
 
-.scroll-indicator .arrow.up {
-    top: 5px;
-    border-bottom: 6px solid var(--accent-scroll);
+.scroll-arrows .arrow.up {
+    border-bottom: 6px solid var(--text-muted);
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
 }
 
-.scroll-indicator .arrow.down {
-    bottom: 5px;
-    border-top: 6px solid var(--accent-scroll);
+.scroll-arrows .arrow.down {
+    border-top: 6px solid var(--text-muted);
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
 }
 
-@keyframes pulse {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-    50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+.touchpad-button.middle.scrolling-up .scroll-arrows .arrow.up {
+    opacity: 1;
+    border-bottom-color: white;
+}
+
+.touchpad-button.middle.scrolling-down .scroll-arrows .arrow.down {
+    opacity: 1;
+    border-top-color: white;
 }
 
 
@@ -417,7 +406,6 @@ select {
 .special-keys-area {
     display: flex;
     flex-direction: column;
-    gap: 30px;
 }
 
 .keyboard-row {

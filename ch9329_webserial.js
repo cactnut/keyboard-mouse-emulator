@@ -454,7 +454,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const touchpadLeft = document.getElementById('touchpadLeft');
     const touchpadMiddle = document.getElementById('touchpadMiddle');
     const touchpadRight = document.getElementById('touchpadRight');
-    const scrollIndicator = document.getElementById('scrollIndicator');
     const textInputContainer = document.getElementById('textInputContainer');
     const visualKeyboard = document.getElementById('visualKeyboard');
     
@@ -611,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
         touchpadLeft.classList.remove('capture-active');
         touchpadMiddle.classList.remove('capture-active');
         touchpadRight.classList.remove('capture-active');
-        scrollIndicator.classList.remove('active');
+        touchpadMiddle.classList.remove('scrolling-up', 'scrolling-down');
         
         // Pointer Lockを解除
         if (document.exitPointerLock) {
@@ -825,26 +824,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function showScrollIndicator(amount) {
         if (!touchpadMiddle) return;
 
-        // 中ボタンにスクロール状態を追加
-        touchpadMiddle.classList.add('scrolling');
-        scrollIndicator.classList.add('active');
-
-        // 上下の矢印の表示を調整
-        const arrows = scrollIndicator.querySelectorAll('.arrow');
+        // 中ボタンにスクロール方向に応じたクラスを追加
+        touchpadMiddle.classList.remove('scrolling-up', 'scrolling-down');
         if (amount > 0) {
-            arrows[0].style.opacity = '1';
-            arrows[1].style.opacity = '0.3';
+            touchpadMiddle.classList.add('scrolling-up');
         } else {
-            arrows[0].style.opacity = '0.3';
-            arrows[1].style.opacity = '1';
+            touchpadMiddle.classList.add('scrolling-down');
         }
 
         // 一定時間後に非表示
         clearTimeout(showScrollIndicator.timer);
         showScrollIndicator.timer = setTimeout(() => {
-            scrollIndicator.classList.remove('active');
-            touchpadMiddle.classList.remove('scrolling');
-        }, 500);
+            touchpadMiddle.classList.remove('scrolling-up', 'scrolling-down');
+        }, 100);
     }
     
     // タッチイベント（モバイル対応）
@@ -1315,7 +1307,77 @@ document.addEventListener('DOMContentLoaded', () => {
             keyDiv.textContent = key.label;
             spaceRow.appendChild(keyDiv);
         });
-        
+
+        // ナビゲーションキー（上部3行）
+        const navRow1 = document.getElementById('navRow1');
+        navRow1.innerHTML = '';
+        [
+            { code: 'PrintScreen', label: 'PrtSc', class: 'nav-key' },
+            { code: 'ScrollLock', label: 'Scroll', class: 'nav-key' },
+            { code: 'Pause', label: 'Pause', class: 'nav-key' }
+        ].forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.class}`;
+            keyDiv.dataset.code = key.code;
+            keyDiv.textContent = key.label;
+            navRow1.appendChild(keyDiv);
+        });
+
+        const navRow2 = document.getElementById('navRow2');
+        navRow2.innerHTML = '';
+        [
+            { code: 'Insert', label: 'Ins', class: 'nav-key' },
+            { code: 'Home', label: 'Home', class: 'nav-key' },
+            { code: 'PageUp', label: 'PgUp', class: 'nav-key' }
+        ].forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.class}`;
+            keyDiv.dataset.code = key.code;
+            keyDiv.textContent = key.label;
+            navRow2.appendChild(keyDiv);
+        });
+
+        const navRow3 = document.getElementById('navRow3');
+        navRow3.innerHTML = '';
+        [
+            { code: 'Delete', label: 'Del', class: 'nav-key' },
+            { code: 'End', label: 'End', class: 'nav-key' },
+            { code: 'PageDown', label: 'PgDn', class: 'nav-key' }
+        ].forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.class}`;
+            keyDiv.dataset.code = key.code;
+            keyDiv.textContent = key.label;
+            navRow3.appendChild(keyDiv);
+        });
+
+        // 矢印キー（下部2行）
+        const arrowRow1 = document.getElementById('arrowRow1');
+        arrowRow1.innerHTML = '';
+        [
+            { code: 'ArrowUp', label: '↑', class: 'arrow-key' }
+        ].forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.class}`;
+            keyDiv.dataset.code = key.code;
+            keyDiv.textContent = key.label;
+            arrowRow1.appendChild(keyDiv);
+        });
+
+        const arrowRow2 = document.getElementById('arrowRow2');
+        arrowRow2.innerHTML = '';
+        [
+            { code: 'ArrowLeft', label: '←', class: 'arrow-key' },
+            { code: 'ArrowDown', label: '↓', class: 'arrow-key' },
+            { code: 'ArrowRight', label: '→', class: 'arrow-key' }
+        ].forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = `key ${key.class}`;
+            keyDiv.dataset.code = key.code;
+            keyDiv.textContent = key.label;
+            arrowRow2.appendChild(keyDiv);
+        });
+
         // イベントリスナー再設定
         setupKeyboardEventListeners();
     }
