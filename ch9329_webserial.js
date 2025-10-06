@@ -236,7 +236,20 @@ class CH9329Controller {
             await this.pushKey(0x00, keyCode);
         }
     }
-    
+
+    // 修飾キー付きでキーを送信
+    async sendKeyWithModifiers(keyCode, ctrlKey = false, shiftKey = false, altKey = false, metaKey = false) {
+        let modifier = 0x00;
+
+        // 修飾キーのビットマスク
+        if (ctrlKey) modifier |= 0x01;   // Left Ctrl
+        if (shiftKey) modifier |= 0x02;  // Left Shift
+        if (altKey) modifier |= 0x04;    // Left Alt
+        if (metaKey) modifier |= 0x08;   // Left Win/Command
+
+        await this.pushKey(modifier, keyCode);
+    }
+
     // 絶対座標移動は削除（相対移動のみ使用）
     
     async moveMouseRelative(x, y) {
@@ -987,9 +1000,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (visualKey) {
             visualKey.classList.add('pressed');
         }
-        
+
+        // 修飾キーの状態を取得
+        const modifiers = {
+            ctrlKey: e.ctrlKey,
+            shiftKey: e.shiftKey,
+            altKey: e.altKey,
+            metaKey: e.metaKey
+        };
+
         // キー送信
-        await handleKeyPress(e.code, e.key);
+        await handleKeyPress(e.code, e.key, modifiers);
     });
     
     document.addEventListener('keyup', (e) => {
@@ -1389,21 +1410,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupKeyboardEventListeners() {
         const visualKeys = document.querySelectorAll('.visual-keyboard .key');
         visualKeys.forEach(key => {
-            key.addEventListener('mousedown', async () => {
+            key.addEventListener('mousedown', async (e) => {
                 if (!controller.isConnected) return;
-                
+
                 key.classList.add('pressed');
                 const code = key.dataset.code;
                 const keyChar = key.dataset.key;
-                
+
+                // 修飾キーの状態を取得（マウスイベントから）
+                const modifiers = {
+                    ctrlKey: e.ctrlKey,
+                    shiftKey: e.shiftKey,
+                    altKey: e.altKey,
+                    metaKey: e.metaKey
+                };
+
                 // キー送信
-                await handleKeyPress(code, keyChar, key);
+                await handleKeyPress(code, keyChar, modifiers, key);
             });
-            
+
             key.addEventListener('mouseup', () => {
                 setTimeout(() => key.classList.remove('pressed'), 100);
             });
-            
+
             key.addEventListener('mouseleave', () => {
                 key.classList.remove('pressed');
             });
@@ -1412,9 +1441,11 @@ document.addEventListener('DOMContentLoaded', () => {
     
     
     // キー入力処理
-    async function handleKeyPress(code, key, element = null) {
+    async function handleKeyPress(code, key, modifiers = {}, element = null) {
         if (!controller.isConnected) return;
-        
+
+        const { ctrlKey = false, shiftKey = false, altKey = false, metaKey = false } = modifiers;
+
         // 特殊キーの処理
         const specialKeys = {
             'Enter': 'ENTER',
@@ -1442,10 +1473,29 @@ document.addEventListener('DOMContentLoaded', () => {
             'ArrowLeft': 'LEFT',
             'ArrowRight': 'RIGHT'
         };
-        
+
+        // キーコードマッピング（code → HID keycode）
+        const keycodeMap = {
+            'KeyA': 0x04, 'KeyB': 0x05, 'KeyC': 0x06, 'KeyD': 0x07, 'KeyE': 0x08, 'KeyF': 0x09,
+            'KeyG': 0x0A, 'KeyH': 0x0B, 'KeyI': 0x0C, 'KeyJ': 0x0D, 'KeyK': 0x0E, 'KeyL': 0x0F,
+            'KeyM': 0x10, 'KeyN': 0x11, 'KeyO': 0x12, 'KeyP': 0x13, 'KeyQ': 0x14, 'KeyR': 0x15,
+            'KeyS': 0x16, 'KeyT': 0x17, 'KeyU': 0x18, 'KeyV': 0x19, 'KeyW': 0x1A, 'KeyX': 0x1B,
+            'KeyY': 0x1C, 'KeyZ': 0x1D,
+            'Digit1': 0x1E, 'Digit2': 0x1F, 'Digit3': 0x20, 'Digit4': 0x21, 'Digit5': 0x22,
+            'Digit6': 0x23, 'Digit7': 0x24, 'Digit8': 0x25, 'Digit9': 0x26, 'Digit0': 0x27,
+            'Space': 0x2C, 'Minus': 0x2D, 'Equal': 0x2E, 'BracketLeft': 0x2F, 'BracketRight': 0x30,
+            'Backslash': 0x31, 'Semicolon': 0x33, 'Quote': 0x34, 'Backquote': 0x35,
+            'Comma': 0x36, 'Period': 0x37, 'Slash': 0x38
+        };
+
         if (specialKeys[code]) {
+            // 特殊キーは修飾キーなしで送信
             await controller.sendSpecialKey(specialKeys[code]);
+        } else if (keycodeMap[code]) {
+            // 修飾キー付きで送信（Ctrl+a, Shift+a など）
+            await controller.sendKeyWithModifiers(keycodeMap[code], ctrlKey, shiftKey, altKey, metaKey);
         } else if (key && key.length === 1) {
+            // フォールバック（既存の動作）
             await controller.sendText(key);
         }
     }
