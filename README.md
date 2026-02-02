@@ -45,6 +45,18 @@ The web interface uses WebSerial API which requires a compatible browser:
 3. Select the serial port for CH9329 device
 4. Use the visual keyboard and mouse pad
 
+### Mac Users Note
+
+Some function keys (F3, F4, F5-F12, etc.) may be assigned to macOS system shortcuts by default. To use these keys with this application, you may need to disable the conflicting shortcuts in:
+
+**System Preferences → Keyboard → Shortcuts**
+
+Common macOS shortcuts that may interfere:
+- F3: Mission Control
+- F4: Launchpad
+- F5-F6: Brightness controls
+- F7-F12: Media controls
+
 ### Features
 
 - **Visual Keyboard** with OS-specific layouts
