@@ -35,7 +35,14 @@ class CH9329Controller {
             UP: 0x52,
             DOWN: 0x51,
             LEFT: 0x50,
-            RIGHT: 0x4F
+            RIGHT: 0x4F,
+            CAPS: 0x39,
+            PRINTSCREEN: 0x46,
+            SCROLLLOCK: 0x47,
+            PAUSE: 0x48,
+            MENU: 0x65,
+            LANG1: 0x90,
+            LANG2: 0x91
         };
         
         // マウスボタン定義
@@ -460,8 +467,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const logDiv = document.getElementById('log');
     const BAUD_RATE = 9600; // ボーレートを指定 デフォルト9600 変更にはデータ書き込みが必要 19200,38400つながらない? 57600つながることもある 74880,115200つながらない
     const textInput = document.getElementById('textInput');
+    const textDisplay = document.getElementById('textDisplay');
     const sendTextBtn = document.getElementById('sendTextBtn');
-    const clearTextBtn = document.getElementById('clearTextBtn');
     const touchpad = document.getElementById('touchpad');
     const touchpadArea = document.getElementById('touchpadArea');
     const touchpadLeft = document.getElementById('touchpadLeft');
@@ -591,18 +598,33 @@ document.addEventListener('DOMContentLoaded', () => {
             await controller.sendText(text);
         }
     });
-    
-    clearTextBtn.addEventListener('click', () => {
-        textInput.value = '';
-    });
-    
+
     // キーボードショートカット（Ctrl+Enterでテキスト送信）
     textInput.addEventListener('keydown', async (e) => {
         if (e.ctrlKey && e.key === 'Enter' && controller.isConnected) {
             await controller.sendText(textInput.value);
         }
     });
-    
+
+    // テキスト入力の視覚化（改行を⏎で表示）
+    function updateTextDisplay() {
+        const text = textInput.value;
+        // HTMLエスケープ
+        const escaped = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        // 改行を⏎マークで表示
+        const visualized = escaped.replace(/\n/g, '<span class="enter-mark">⏎</span>\n');
+        textDisplay.innerHTML = visualized;
+    }
+
+    textInput.addEventListener('input', updateTextDisplay);
+    textInput.addEventListener('scroll', () => {
+        textDisplay.scrollTop = textInput.scrollTop;
+        textDisplay.scrollLeft = textInput.scrollLeft;
+    });
+
     // =====================================================
     // マウス制御
     // =====================================================
@@ -1486,7 +1508,13 @@ document.addEventListener('DOMContentLoaded', () => {
             'ArrowUp': 'UP',
             'ArrowDown': 'DOWN',
             'ArrowLeft': 'LEFT',
-            'ArrowRight': 'RIGHT'
+            'ArrowRight': 'RIGHT',
+            'PrintScreen': 'PRINTSCREEN',
+            'ScrollLock': 'SCROLLLOCK',
+            'Pause': 'PAUSE',
+            'ContextMenu': 'MENU',
+            'Lang1': 'LANG1',
+            'Lang2': 'LANG2'
         };
 
         // キーコードマッピング（code → HID keycode）
@@ -1503,7 +1531,9 @@ document.addEventListener('DOMContentLoaded', () => {
             'Comma': 0x36, 'Period': 0x37, 'Slash': 0x38,
             // ファンクションキー（修飾キー対応のため追加）
             'F1': 0x3A, 'F2': 0x3B, 'F3': 0x3C, 'F4': 0x3D, 'F5': 0x3E, 'F6': 0x3F,
-            'F7': 0x40, 'F8': 0x41, 'F9': 0x42, 'F10': 0x43, 'F11': 0x44, 'F12': 0x45
+            'F7': 0x40, 'F8': 0x41, 'F9': 0x42, 'F10': 0x43, 'F11': 0x44, 'F12': 0x45,
+            // JISキーボードの¥キー
+            'IntlYen': 0x89
         };
 
         if (specialKeys[code]) {
