@@ -1514,5 +1514,31 @@ document.addEventListener('DOMContentLoaded', () => {
             await controller.sendText(key);
         }
     }
-    
+
+    // =====================================================
+    // 修飾キー対応表の強調表示
+    // =====================================================
+
+    function highlightModifierTable() {
+        const currentOS = getOSInfo();
+        const table = document.querySelector('.modifier-table');
+        if (!table) return;
+
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 2) {
+                // OSに応じて該当する列を強調
+                if (currentOS === 'mac') {
+                    cells[1].classList.add('current-os-key');
+                } else {
+                    cells[0].classList.add('current-os-key');
+                }
+            }
+        });
+    }
+
+    // 修飾キー対応表を初期化
+    highlightModifierTable();
+
 });

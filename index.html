@@ -99,25 +99,67 @@
             </div>
             <label style="display: block; text-align: center; margin: 10px 0; font-size: 14px;">キーボードエリアをクリックでリアルタイム送信開始 | キーボード外クリックで終了</label>
 
-            <!-- タッチパッドエリア -->
-            <div class="touchpad-section" style="margin-top: 20px;">
-                <div class="touchpad" id="touchpad">
-                    <div class="touchpad-area" id="touchpadArea" title="クリックしてマウスキャプチャモード開始">
-                    </div>
-                    <div class="touchpad-buttons">
-                        <div class="touchpad-button left" id="touchpadLeft">左クリック</div>
-                        <div class="touchpad-button middle" id="touchpadMiddle">
-                            <div class="scroll-arrows">
-                                <div class="arrow up"></div>
-                                <div class="arrow down"></div>
-                            </div>
+            <!-- タッチパッドと修飾キー対応表のコンテナ -->
+            <div class="touchpad-and-reference-container">
+                <!-- タッチパッドエリア -->
+                <div class="touchpad-section">
+                    <div class="touchpad" id="touchpad">
+                        <div class="touchpad-area" id="touchpadArea" title="クリックしてマウスキャプチャモード開始">
                         </div>
-                        <div class="touchpad-button right" id="touchpadRight">右クリック</div>
+                        <div class="touchpad-buttons">
+                            <div class="touchpad-button left" id="touchpadLeft">左クリック</div>
+                            <div class="touchpad-button middle" id="touchpadMiddle">
+                                <div class="scroll-arrows">
+                                    <div class="arrow up"></div>
+                                    <div class="arrow down"></div>
+                                </div>
+                            </div>
+                            <div class="touchpad-button right" id="touchpadRight">右クリック</div>
+                        </div>
+                    </div>
+                    <label style="display: block; text-align: center; margin: 10px 0; font-size: 14px;">
+                        タッチパッドエリアをクリックしてマウスキャプチャモード開始 | 2本指でスクロール | ESCキーで解除
+                    </label>
+                </div>
+
+                <!-- 修飾キー対応表 -->
+                <div class="modifier-key-reference">
+                    <h3>修飾キー対応表</h3>
+                    <table class="modifier-table">
+                        <thead>
+                            <tr>
+                                <th>Windows/Linux</th>
+                                <th>Mac</th>
+                                <th>送信</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Ctrl</td>
+                                <td>^ Control</td>
+                                <td>0x01</td>
+                            </tr>
+                            <tr>
+                                <td>Shift</td>
+                                <td>⇧ Shift</td>
+                                <td>0x02</td>
+                            </tr>
+                            <tr>
+                                <td>Alt</td>
+                                <td>⌥ Option</td>
+                                <td>0x04</td>
+                            </tr>
+                            <tr>
+                                <td>⊞ Win</td>
+                                <td>⌘ Command</td>
+                                <td>0x08</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="modifier-note">
+                        Ctrl+Alt+F2 などの組み合わせを同時に押して送信
                     </div>
                 </div>
-                <label style="display: block; text-align: center; margin: 10px 0; font-size: 14px;">
-                    タッチパッドエリアをクリックしてマウスキャプチャモード開始 | 2本指でスクロール | ESCキーで解除
-                </label>
             </div>
         </div>
 

@@ -512,4 +512,73 @@ select {
     font-size: 16px;
 }
 
+/* タッチパッドと修飾キー対応表のコンテナ */
+.touchpad-and-reference-container {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin-top: 20px;
+}
+
+.touchpad-section {
+    flex: 0 0 auto;
+}
+
+/* 修飾キー対応表 */
+.modifier-key-reference {
+    flex: 1;
+    padding: 15px;
+    background: var(--bg-section);
+    border-radius: 8px;
+    border: 1px solid var(--border-section);
+    min-width: 300px;
+}
+
+.modifier-key-reference h3 {
+    color: var(--text-secondary);
+    font-size: 1em;
+    margin: 0 0 12px 0;
+    font-weight: bold;
+}
+
+.modifier-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.modifier-table th {
+    background: var(--bg-section);
+    color: var(--text-secondary);
+    padding: 8px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 12px;
+    border-bottom: 2px solid var(--border-section);
+}
+
+.modifier-table td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-section);
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.modifier-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.modifier-table td.current-os-key {
+    background: rgba(87, 191, 128, 0.15);
+    font-weight: bold;
+}
+
+.modifier-note {
+    padding: 8px;
+    background: var(--input-bg);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
 
