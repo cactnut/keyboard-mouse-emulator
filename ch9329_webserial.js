@@ -504,7 +504,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // テキスト送信ボタン有効化
             sendTextBtn.disabled = false;
         } catch (error) {
-            alert(`接続エラー: ${error.message}`);
+            // ユーザーがポート選択をキャンセルした場合はエラー表示しない
+            if (!error.message.includes('No port selected')) {
+                alert(`接続エラー: ${error.message}`);
+            }
         }
     });
     
