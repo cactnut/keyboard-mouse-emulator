@@ -209,9 +209,12 @@ class CH9329Controller {
     
     async sendText(text) {
         if (!text) return;
-        
+
+        // ⏎マークを削除（改行は残す）
+        text = text.replace(/⏎/g, '');
+
         this.log(`テキスト送信: "${text}"`, 'info');
-        
+
         for (const char of text) {
             if (this.KEY_TABLE[char]) {
                 const [modifier, keycode] = this.KEY_TABLE[char];
@@ -467,7 +470,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const logDiv = document.getElementById('log');
     const BAUD_RATE = 9600; // ボーレートを指定 デフォルト9600 変更にはデータ書き込みが必要 19200,38400つながらない? 57600つながることもある 74880,115200つながらない
     const textInput = document.getElementById('textInput');
-    const textDisplay = document.getElementById('textDisplay');
     const sendTextBtn = document.getElementById('sendTextBtn');
     const touchpad = document.getElementById('touchpad');
     const touchpadArea = document.getElementById('touchpadArea');
@@ -593,6 +595,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // テキスト入力
     
     sendTextBtn.addEventListener('click', async () => {
+        // 接続状態チェック（Ctrl+Enterと同じ）
+        if (!controller.isConnected) {
+            return;
+        }
         const text = textInput.value;
         if (text) {
             await controller.sendText(text);
@@ -601,28 +607,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // キーボードショートカット（Ctrl+Enterでテキスト送信）
     textInput.addEventListener('keydown', async (e) => {
-        if (e.ctrlKey && e.key === 'Enter' && controller.isConnected) {
-            await controller.sendText(textInput.value);
+        if (e.key === 'Enter') {
+            if (e.ctrlKey && controller.isConnected) {
+                // Ctrl+Enter: テキスト送信
+                e.preventDefault();
+                await controller.sendText(textInput.value);
+            } else if (!e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+                // 通常のEnter: ⏎マーク+改行を挿入
+                e.preventDefault();
+                const start = textInput.selectionStart;
+                const end = textInput.selectionEnd;
+                const text = textInput.value;
+                // カーソル位置に⏎+改行を挿入
+                textInput.value = text.substring(0, start) + '⏎\n' + text.substring(end);
+                // カーソルを改行の後ろに移動
+                textInput.selectionStart = textInput.selectionEnd = start + 2;
+            }
+        } else if (e.key === 'Backspace') {
+            // Backspace: 改行を削除する場合、直前の⏎も一緒に削除
+            const start = textInput.selectionStart;
+            const end = textInput.selectionEnd;
+            const text = textInput.value;
+
+            // 選択範囲がなく、改行の直後にカーソルがあり、その前に⏎がある場合
+            if (start === end && start > 1 && text[start - 1] === '\n' && text[start - 2] === '⏎') {
+                e.preventDefault();
+                textInput.value = text.substring(0, start - 2) + text.substring(start);
+                textInput.selectionStart = textInput.selectionEnd = start - 2;
+            }
         }
     });
 
-    // テキスト入力の視覚化（改行を⏎で表示）
-    function updateTextDisplay() {
-        const text = textInput.value;
-        // HTMLエスケープ
-        const escaped = text
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-        // 改行を⏎マークで表示
-        const visualized = escaped.replace(/\n/g, '<span class="enter-mark">⏎</span>\n');
-        textDisplay.innerHTML = visualized;
-    }
+    // 入力フィルタリング（⏎文字を直接入力・コピペできないようにする）
+    textInput.addEventListener('input', (e) => {
+        const cursorPos = textInput.selectionStart;
+        const originalValue = textInput.value;
+        // ⏎文字を除去（ユーザーが直接入力・コピペした場合）
+        const filtered = originalValue.replace(/⏎/g, '');
 
-    textInput.addEventListener('input', updateTextDisplay);
-    textInput.addEventListener('scroll', () => {
-        textDisplay.scrollTop = textInput.scrollTop;
-        textDisplay.scrollLeft = textInput.scrollLeft;
+        if (filtered !== originalValue) {
+            // ⏎が含まれていた場合、除去して再設定
+            const removedCount = originalValue.length - filtered.length;
+            textInput.value = filtered;
+            // カーソル位置を調整
+            textInput.selectionStart = textInput.selectionEnd = Math.max(0, cursorPos - removedCount);
+        }
     });
 
     // =====================================================

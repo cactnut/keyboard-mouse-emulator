@@ -201,59 +201,35 @@ textarea {
 #textInputContainer {
     position: relative;
     margin-bottom: 10px;
-    background: var(--input-bg);
-    border: 2px solid var(--border-input);
-    border-radius: 5px;
-    transition: border-color 0.3s;
-}
-
-#textInputContainer:focus-within {
-    border-color: var(--primary);
 }
 
 #textInput {
+    width: 100%;
     padding: 10px;
     padding-right: 80px; /* 送信ボタンのスペースを確保 */
-    color: transparent;
-    caret-color: var(--input-text);
-    position: relative;
-    z-index: 1;
-    background: transparent;
-    border: none;
     min-height: 100px;
+    max-height: 300px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--input-text);
+    background: var(--input-bg);
+    border: 2px solid var(--border-input);
+    border-radius: 5px;
+    resize: vertical;
+    overflow-y: auto;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
 }
 
 #textInput:focus {
     outline: none;
+    border-color: var(--primary);
 }
 
 #textInput::placeholder {
     color: var(--text-muted);
     opacity: 0.6;
-}
-
-#textDisplay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 10px;
-    padding-right: 80px;
-    min-height: 100px;
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    color: var(--input-text);
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-}
-
-.enter-mark {
-    color: var(--primary);
-    font-weight: bold;
-    opacity: 0.7;
 }
 
 #sendTextBtn {
